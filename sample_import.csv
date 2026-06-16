@@ -1,0 +1,6 @@
+name,team_academy_name,email,country_code,mobile_number,address_line_1,address_line_2,city,state,pincode,country
+Rajesh Kumar,Chennai FC Academy,rajesh@example.com,+91,9876543210,"12, Anna Nagar","Near MGR Statue",Chennai,Tamil Nadu,600040,India
+Priya Sharma,Mumbai Strikers Club,priya@example.com,+91,9812345678,"45, Bandra West",Landmark,Mumbai,Maharashtra,400050,India
+Ahmed Al-Rashid,Dubai Sports Club,ahmed@example.com,+971,501234567,"Al Wasl Road, Jumeirah",,Dubai,Dubai,00000,UAE
+Suresh Babu,Coimbatore United,,+91,9944556677,"78, RS Puram",,Coimbatore,Tamil Nadu,641002,India
+Lakshmi Devi,Bangalore Warriors Academy,lakshmi@example.com,+91,8899001122,"23, Koramangala",,Bengaluru,Karnataka,560034,India
