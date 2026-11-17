@@ -1,26 +1,30 @@
-/* public.css - Premium Styles for Public Landing Pages */
+/* public.css - Ira Sportswear Brand Styles */
 :root {
-    --primary: #e53935;
-    --primary-dark: #b71c1c;
-    --accent: #2563eb;
-    --bg-light: #f8fafc;
-    --bg-dark: #0f172a;
-    --text-primary: #1e293b;
+    --brand-navy: #161e38;
+    --brand-navy-dark: #0f1426;
+    --brand-red: #ec1e24;
+    --brand-neon: #00e676;
+    --primary: #ec1e24;
+    --primary-dark: #d0161b;
+    --accent: #161e38;
+    --bg-light: #f5f7fb;
+    --bg-dark: #0f1426;
+    --text-primary: #0d1326;
     --text-muted: #64748b;
     --surface: #ffffff;
-    --border: #e2e8f0;
+    --border: #dbe2ee;
     --radius-lg: 24px;
     --radius-md: 12px;
-    --shadow-premium: 0 20px 40px rgba(0,0,0,0.06);
+    --shadow-premium: 0 20px 40px rgba(0,0,0,0.08);
     --font-main: 'Inter', -apple-system, system-ui, sans-serif;
 }
 
 [data-theme='dark'] {
-    --bg-light: #0f172a;
-    --surface: #1e293b;
+    --bg-light: #0a0e1c;
+    --surface: #161e38;
     --text-primary: #f8fafc;
     --text-muted: #94a3b8;
-    --border: #334155;
+    --border: #243054;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }

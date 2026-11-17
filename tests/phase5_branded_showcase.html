@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ira Sportswear - Brand & UI Visual Showcase</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        body {
+            background: #0a0e1c;
+            color: #f8fafc;
+            font-family: 'Inter', -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+        .showcase-sidebar {
+            width: 260px;
+            background: #0a0e1c;
+            border-right: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .showcase-brand {
+            padding: 20px 22px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .showcase-brand img {
+            height: 42px;
+            width: auto;
+            border-radius: 8px;
+            background: #fff;
+            padding: 3px 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .showcase-brand-text h2 {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+            line-height: 1.2;
+        }
+        .showcase-brand-text span {
+            font-size: 0.68rem;
+            color: #00e676;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .showcase-nav {
+            padding: 16px 0;
+            flex: 1;
+        }
+        .showcase-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 22px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.88rem;
+            font-weight: 500;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .showcase-nav-item.active {
+            color: #fff;
+            background: linear-gradient(90deg, rgba(236, 30, 36, 0.25) 0%, rgba(30, 40, 74, 0.5) 100%);
+            border-left-color: #ec1e24;
+            font-weight: 700;
+        }
+        .showcase-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        .showcase-topbar {
+            height: 64px;
+            background: #161e38;
+            border-bottom: 1px solid #243054;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+        }
+        .showcase-topbar-title h1 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin: 0;
+            color: #fff;
+        }
+        .showcase-topbar-title .breadcrumb {
+            font-size: 0.75rem;
+            color: #8893a7;
+        }
+        .showcase-content {
+            padding: 24px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .brand-banner {
+            background: linear-gradient(135deg, #161e38 0%, #0f1426 100%);
+            border: 1px solid #243054;
+            border-radius: 16px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .brand-palette-pills {
+            display: flex;
+            gap: 10px;
+        }
+        .palette-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .pill-navy { background: #161e38; color: #fff; }
+        .pill-red { background: #ec1e24; color: #fff; }
+        .pill-neon { background: #00e676; color: #0f1426; }
+        .pill-dark { background: #0a0e1c; color: #fff; }
+
+        /* Filter Toolbar */
+        .filter-toolbar {
+            background: #161e38;
+            border: 1px solid #243054;
+            border-radius: 14px;
+            padding: 16px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .filter-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .filter-box {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .filter-box label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #8893a7;
+            text-transform: uppercase;
+        }
+        .filter-box input, .filter-box select {
+            background: #0a0e1c;
+            border: 1px solid #243054;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            outline: none;
+        }
+
+        /* Bulk Bar */
+        .bulk-bar {
+            background: #0a0e1c;
+            border: 1.5px solid #243054;
+            border-radius: 12px;
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .bulk-count {
+            background: #00e676;
+            color: #0f1426;
+            font-weight: 800;
+            font-size: 0.78rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        /* Kanban columns mini showcase */
+        .kanban-showcase {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .kanban-col {
+            background: #0f1426;
+            border: 1px solid #243054;
+            border-radius: 14px;
+            padding: 14px;
+        }
+        .col-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #243054;
+        }
+        .showcase-card {
+            background: #161e38;
+            border: 1px solid #243054;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .card-high { border-left: 4px solid #ef5350; }
+        .card-med { border-left: 4px solid #fb8c00; }
+        .card-low { border-left: 4px solid #42a5f5; }
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+        .card-title {
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: #fff;
+        }
+        .card-sub {
+            font-size: 0.75rem;
+            color: #8893a7;
+        }
+        .p-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        .p-high { background: rgba(239,83,80,0.18); color: #ef5350; }
+        .p-med { background: rgba(251,140,0,0.18); color: #fb8c00; }
+        .p-low { background: rgba(66,165,245,0.18); color: #42a5f5; }
+        .chips {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px dashed #243054;
+        }
+        .chip {
+            font-size: 0.78rem;
+            padding: 2px 6px;
+            border-radius: 6px;
+            background: #0a0e1c;
+            border: 1px solid #243054;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Branded Sidebar -->
+<aside class="showcase-sidebar">
+    <div class="showcase-brand">
+        <img src="../assets/ira_logo_web.png" alt="Ira Sportswear Logo">
+        <div class="showcase-brand-text">
+            <h2>Ira Sportswear</h2>
+            <span>Lead Management</span>
+        </div>
+    </div>
+    <div class="showcase-nav">
+        <a href="#" class="showcase-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+        </a>
+        <a href="#" class="showcase-nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            Leads & Pipeline
+        </a>
+        <a href="#" class="showcase-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            Customers
+        </a>
+        <a href="#" class="showcase-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            User Management
+        </a>
+    </div>
+</aside>
+
+<!-- Main Branded Workspace -->
+<main class="showcase-main">
+    <header class="showcase-topbar">
+        <div class="showcase-topbar-title">
+            <div class="breadcrumb">Ira Sportswear / Leads & Pipeline</div>
+            <h1>Lead Management & Pipeline Workflow</h1>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px">
+            <button class="btn btn-secondary btn-sm">Export CSV</button>
+            <button class="btn btn-primary btn-sm">+ Create Lead</button>
+            <div style="width:36px; height:36px; border-radius:50%; background:#ec1e24; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.8rem">AK</div>
+        </div>
+    </header>
+
+    <div class="showcase-content">
+        <!-- Brand Identity Palette Bar -->
+        <div class="brand-banner">
+            <div>
+                <h3 style="margin:0 0 4px; font-size:1.05rem; font-weight:800">Official Brand Identity: Ira Sportswear</h3>
+                <p style="margin:0; font-size:0.8rem; color:#8893a7">Navy Blue (#161e38), Sport Red (#ec1e24), High-Visibility Neon Green (#00e676)</p>
+            </div>
+            <div class="brand-palette-pills">
+                <div class="palette-pill pill-navy">⚓ Athletic Navy #161e38</div>
+                <div class="palette-pill pill-red">🔥 Sport Red #ec1e24</div>
+                <div class="palette-pill pill-neon">⚡ Neon Green #00e676</div>
+                <div class="palette-pill pill-dark">🌙 Deep Shell #0a0e1c</div>
+            </div>
+        </div>
+
+        <!-- Filter Toolbar (Phase 3 Date Filter) -->
+        <div class="filter-toolbar">
+            <div class="filter-inputs">
+                <div class="filter-box"><label>Search</label><input type="text" placeholder="Search team or customer..." value="Warriors Cricket"></div>
+                <div class="filter-box"><label>Assigned Rep</label><select><option>All Representatives</option><option selected>Arun Kumar</option></select></div>
+                <div class="filter-box"><label>Sport</label><select><option>Cricket</option></select></div>
+                <div class="filter-box"><label>From Date</label><input type="date" value="2026-06-01"></div>
+                <div class="filter-box"><label>To Date</label><input type="date" value="2026-06-30"></div>
+                <button class="btn btn-secondary btn-sm" style="margin-top:16px">Clear Dates</button>
+            </div>
+            <div style="display:flex; gap:8px">
+                <button class="btn btn-navy btn-sm">Kanban View</button>
+                <button class="btn btn-secondary btn-sm">Table View</button>
+                <button class="btn btn-secondary btn-sm">Calendar View</button>
+            </div>
+        </div>
+
+        <!-- Bulk Action Toolbar (Phase 3 & 4) -->
+        <div class="bulk-bar">
+            <div style="display:flex; align-items:center; gap:12px">
+                <span class="bulk-count">2 Leads Selected</span>
+                <span style="font-size:0.82rem; color:#8893a7">Bulk Pipeline Actions</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px">
+                <select style="background:#161e38; border:1px solid #243054; color:#fff; padding:6px 10px; border-radius:8px; font-size:0.8rem">
+                    <option>Change Status: Verified</option>
+                    <option>Change Status: Order Sheet Prepared</option>
+                </select>
+                <button class="btn btn-neon btn-sm">Apply Status</button>
+                <select style="background:#161e38; border:1px solid #243054; color:#fff; padding:6px 10px; border-radius:8px; font-size:0.8rem">
+                    <option>Assign: Praveen</option>
+                    <option>Assign: Karthik</option>
+                </select>
+                <button class="btn btn-secondary btn-sm">Reassign</button>
+                <button class="btn btn-danger btn-sm">Delete</button>
+            </div>
+        </div>
+
+        <!-- Kanban Mini Preview -->
+        <div class="kanban-showcase">
+            <!-- Col 1: Received -->
+            <div class="kanban-col">
+                <div class="col-head">
+                    <span>1. Received</span>
+                    <span style="background:rgba(33,150,243,0.18); color:#2196f3; padding:2px 8px; border-radius:12px; font-size:0.75rem">1</span>
+                </div>
+                <div class="showcase-card card-high">
+                    <div class="card-top">
+                        <div>
+                            <div class="card-title">Apex Cricket Academy</div>
+                            <div class="card-sub">👤 Rajesh Sharma</div>
+                        </div>
+                        <span class="p-badge p-high">HIGH</span>
+                    </div>
+                    <div style="font-size:0.8rem; color:#a5b4cf; margin:6px 0">🏏 Cricket • Sublimation Jersey</div>
+                    <div class="chips">
+                        <span class="chip" title="Attachments">📎</span>
+                        <span class="chip" title="Design Uploaded">🎨</span>
+                        <span class="chip" title="Urgent">🔥</span>
+                        <span class="chip" title="Repeat Customer">⭐</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 2: Analysis -->
+            <div class="kanban-col">
+                <div class="col-head">
+                    <span>2. Analysis</span>
+                    <span style="background:rgba(255,152,0,0.18); color:#ff9800; padding:2px 8px; border-radius:12px; font-size:0.75rem">1</span>
+                </div>
+                <div class="showcase-card card-med">
+                    <div class="card-top">
+                        <div>
+                            <div class="card-title">Velocity Soccer Club</div>
+                            <div class="card-sub">👤 Vikram Menon</div>
+                        </div>
+                        <span class="p-badge p-med">MEDIUM</span>
+                    </div>
+                    <div style="font-size:0.8rem; color:#a5b4cf; margin:6px 0">⚽ Soccer • Team Kit + Shorts</div>
+                    <div class="chips">
+                        <span class="chip" title="Design Uploaded">🎨</span>
+                        <span class="chip" style="border-color:#43a047; color:#43a047" title="WhatsApp Sent">💬</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 3: Order Sheet Prepared -->
+            <div class="kanban-col">
+                <div class="col-head">
+                    <span>4. Order Sheet Prepared</span>
+                    <span style="background:rgba(156,39,176,0.18); color:#ba68c8; padding:2px 8px; border-radius:12px; font-size:0.75rem">1</span>
+                </div>
+                <div class="showcase-card card-low">
+                    <div class="card-top">
+                        <div>
+                            <div class="card-title">Metro Badminton League</div>
+                            <div class="card-sub">👤 Sanjay Pillai</div>
+                        </div>
+                        <span class="p-badge p-low">LOW</span>
+                    </div>
+                    <div style="font-size:0.8rem; color:#a5b4cf; margin:6px 0">🏸 Badminton • Dry-Fit Polos</div>
+                    <div class="chips">
+                        <span class="chip" title="Roster Received">📋</span>
+                        <span class="chip" style="border-color:#43a047; color:#43a047" title="WhatsApp Sent">💬</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 4: Moved to Production -->
+            <div class="kanban-col">
+                <div class="col-head">
+                    <span>10. Moved to Production</span>
+                    <span style="background:rgba(46,125,50,0.18); color:#66bb6a; padding:2px 8px; border-radius:12px; font-size:0.75rem">1</span>
+                </div>
+                <div class="showcase-card card-high">
+                    <div class="card-top">
+                        <div>
+                            <div class="card-title">Strikers Football Club</div>
+                            <div class="card-sub">👤 David Paul</div>
+                        </div>
+                        <span class="p-badge p-high">HIGH</span>
+                    </div>
+                    <div style="font-size:0.8rem; color:#a5b4cf; margin:6px 0">⚽ Soccer • Custom Sublimation</div>
+                    <div class="chips">
+                        <span class="chip" title="Attachments">📎</span>
+                        <span class="chip" title="Design Uploaded">🎨</span>
+                        <span class="chip" title="Roster Received">📋</span>
+                        <span class="chip" style="border-color:#43a047; color:#43a047" title="WhatsApp Sent">💬</span>
+                        <span class="chip" title="Urgent">🔥</span>
+                        <span class="chip" title="Repeat Customer">⭐</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

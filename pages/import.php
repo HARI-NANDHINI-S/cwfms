@@ -19,10 +19,11 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Import Customers | Customer Management</title>
+    <title>Import Customers | Ira Sportswear</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <link rel="shortcut icon" href="../assets/favicon.ico">
     <script>(function(){var t=localStorage.getItem('cm-theme');if(t){document.documentElement.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){document.documentElement.setAttribute('data-theme','dark')}else{document.documentElement.setAttribute('data-theme','light')}})();</script>
     <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e53935'/><text y='.9em' font-size='80' x='10'>S3</text></svg>">
     <style>
         .import-zone { border: 2px dashed var(--border-color); border-radius: 12px; padding: 48px 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg-secondary); }
         .import-zone:hover, .import-zone.dragover { border-color: var(--accent); background: rgba(229,57,53,0.04); }
@@ -57,8 +58,8 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
 <div class="app-wrapper">
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-logo">S3</div>
-            <div class="brand-text"><h2>Studio 3</h2><span>Order Management</span></div>
+            <img src="../assets/ira_logo_web.png" alt="Ira Sportswear Logo" class="brand-logo-img">
+            <div class="brand-text"><h2>Ira Sportswear</h2><span>Lead Management</span></div>
         </div>
         <nav class="sidebar-nav">
             <div class="nav-section-label">Main</div>

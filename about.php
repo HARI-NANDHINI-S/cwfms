@@ -6,9 +6,9 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 60px; align-items: center;">
             <div class="reveal">
                 <span style="color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; font-size: 0.85rem;">Our Mission</span>
-                <h1 style="font-size: 3.5rem; font-weight: 900; line-height: 1.1; margin: 15px 0 25px;">Business <span style="color: var(--primary);">Intelligence</span> by Studio 3.</h1>
+                <h1 style="font-size: 3.5rem; font-weight: 900; line-height: 1.1; margin: 15px 0 25px;">Custom Sportswear <span style="color: var(--primary);">Excellence</span> by Ira.</h1>
                 <p style="color: var(--text-muted); line-height: 1.8; font-size: 1.1rem; margin-bottom: 30px;">
-                    At Studio 3 Interactive, we believe that managing customer data and operational insights shouldn't be a hurdle. Our platform is built for enterprises that demand precision, security, and scalability.
+                    At Ira Sportswear, we believe that managing team orders, player rosters, and custom athletic apparel shouldn't be a hurdle. Our lead management platform is built for high-performance sportswear operations.
                 </p>
                 <div style="display: flex; gap: 20px;">
                     <a href="contact.php" class="btn-login-nav">Work with Us</a>

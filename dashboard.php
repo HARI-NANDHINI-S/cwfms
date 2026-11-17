@@ -15,13 +15,14 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Management | Order Management App</title>
-    <meta name="description" content="Studio 3 Interactive Customer Management - Manage customer profiles, contacts, and shipping addresses">
+    <title>Dashboard | Ira Sportswear Lead Management</title>
+    <meta name="description" content="Ira Sportswear Lead Management - Customer profiles, leads, pipelines, and athletic team orders">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="shortcut icon" href="assets/favicon.ico">
     <script>
         (function(){var t=localStorage.getItem('cm-theme');if(t){document.documentElement.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){document.documentElement.setAttribute('data-theme','dark')}else{document.documentElement.setAttribute('data-theme','light')}})();
     </script>
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e53935'/><text y='.9em' font-size='80' x='10'>S3</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -31,10 +32,10 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-logo">S3</div>
+            <img src="assets/ira_logo_web.png" alt="Ira Sportswear Logo" class="brand-logo-img">
             <div class="brand-text">
-                <h2>Studio 3</h2>
-                <span>Order Management</span>
+                <h2>Ira Sportswear</h2>
+                <span>Lead Management</span>
             </div>
         </div>
 
@@ -80,12 +81,12 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
             </a>
             <?php endif; ?>
 
-            <div class="nav-section-label" style="margin-top:8px">Coming Soon</div>
+            <div class="nav-section-label" style="margin-top:8px">Operations</div>
 
-            <span class="nav-item" style="opacity:0.4;cursor:not-allowed">
+            <a href="pages/leads.php" class="nav-item">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 Leads
-            </span>
+            </a>
             <span class="nav-item" style="opacity:0.4;cursor:not-allowed">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                 Orders
@@ -95,7 +96,7 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
                 Payments
             </span>
 
-            <?php if ($user['role'] === 'admin'): ?>
+            <?php if (canManageUsers($user)): ?>
             <div class="nav-section-label" style="margin-top:8px">Admin</div>
             <a href="pages/users.php" class="nav-item">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -120,7 +121,7 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
                 <div class="user-info">
                     <div class="user-name"><?= htmlspecialchars($user['name']) ?></div>
                     <div class="user-role" style="display:flex;align-items:center;gap:4px">
-                        <?= htmlspecialchars($user['role']) ?> 
+                        <?= htmlspecialchars($user['role_label'] ?? getRoleLabel($user['role'])) ?> 
                         <span style="opacity:0.4">·</span> 
                         <span title="Supabase Project ID" style="font-size:9px;opacity:0.6;font-family:var(--font-mono)"><?= explode('.', parse_url(SUPABASE_URL, PHP_URL_HOST))[0] ?></span>
                     </div>
@@ -138,9 +139,9 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
         <!-- TOP HEADER -->
         <header class="top-header">
             <div class="header-title">
-                <h1>Customer Management</h1>
+                <h1>Customer & Lead Dashboard</h1>
                 <div class="breadcrumb">
-                    <span>Order Management App</span>
+                    <span>Ira Sportswear</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="9 18 15 12 9 6"/></svg>
                     <span>Customers</span>
                     <span class="db-status checking" id="dbStatus" title="Database connection status">

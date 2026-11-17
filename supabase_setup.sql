@@ -125,6 +125,53 @@ VALUES
     ('staff@studio3.com', 'Staff User', 'staff');
 
 -- ============================================================
+-- LEADS TABLE
+-- ============================================================
+CREATE TABLE IF NOT EXISTS leads (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
+    lead_source VARCHAR(50) NOT NULL CHECK (lead_source IN ('Kit Builder', 'Website', 'WhatsApp', 'Email')),
+    enquiry_date DATE NOT NULL,
+    products_interested JSONB NOT NULL DEFAULT '[]'::jsonb,
+    sport VARCHAR(50) NOT NULL CHECK (sport IN ('Cricket', 'Soccer', 'Pickleball', 'Tennis', 'Badminton', 'Others')),
+    design_source VARCHAR(50) NOT NULL CHECK (design_source IN ('Kit Builder', 'Design Link', 'Custom Design')),
+    submission_id VARCHAR(255),
+    design_link TEXT,
+    custom_design_file JSONB DEFAULT '[]'::jsonb,
+    player_roster_received VARCHAR(20) NOT NULL CHECK (player_roster_received IN ('Received', 'Not Received')),
+    player_list_file JSONB DEFAULT '[]'::jsonb,
+    notes TEXT,
+    send_whatsapp_notification BOOLEAN DEFAULT FALSE,
+    whatsapp_status VARCHAR(30) DEFAULT 'not_requested',
+    assigned_to UUID REFERENCES user_roles(id) ON DELETE SET NULL,
+    priority VARCHAR(20) NOT NULL DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high')),
+    lead_status VARCHAR(50) NOT NULL DEFAULT 'Received' CHECK (lead_status IN (
+        'Received','Analysis','Awaiting Clarification','Order Sheet Prepared','Verified','Awaiting Approval','Approved','Awaiting Payment','Moved to Production','Lost'
+    )),
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS lead_activity_log (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    lead_id UUID REFERENCES leads(id) ON DELETE CASCADE,
+    action VARCHAR(100) NOT NULL,
+    details TEXT,
+    old_status VARCHAR(50),
+    new_status VARCHAR(50),
+    changed_by UUID REFERENCES user_roles(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_leads_customer ON leads(customer_id);
+CREATE INDEX IF NOT EXISTS idx_leads_priority ON leads(priority);
+CREATE INDEX IF NOT EXISTS idx_leads_assigned ON leads(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(lead_status);
+CREATE INDEX IF NOT EXISTS idx_leads_date ON leads(enquiry_date);
+CREATE INDEX IF NOT EXISTS idx_lead_activity_lead ON lead_activity_log(lead_id);
+
+-- ============================================================
 -- VIEWS: Customer summary view
 -- ============================================================
 CREATE OR REPLACE VIEW customer_summary AS

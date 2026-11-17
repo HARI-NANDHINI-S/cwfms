@@ -44,10 +44,11 @@ $db->logActivity($id, 'viewed', null, $user['name'], 'Profile viewed');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($c['name']) ?> | Customer Management</title>
+    <title><?= htmlspecialchars($c['name']) ?> | Ira Sportswear</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <link rel="shortcut icon" href="../assets/favicon.ico">
     <script>(function(){var t=localStorage.getItem('cm-theme');if(t){document.documentElement.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){document.documentElement.setAttribute('data-theme','dark')}else{document.documentElement.setAttribute('data-theme','light')}})();</script>
     <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e53935'/><text y='.9em' font-size='80' x='10'>S3</text></svg>">
 </head>
 <body>
 
@@ -56,10 +57,10 @@ $db->logActivity($id, 'viewed', null, $user['name'], 'Profile viewed');
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-logo">S3</div>
+            <img src="../assets/ira_logo_web.png" alt="Ira Sportswear Logo" class="brand-logo-img">
             <div class="brand-text">
-                <h2>Studio 3</h2>
-                <span>Order Management</span>
+                <h2>Ira Sportswear</h2>
+                <span>Lead Management</span>
             </div>
         </div>
         <nav class="sidebar-nav">

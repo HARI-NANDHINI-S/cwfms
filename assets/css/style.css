@@ -1,99 +1,129 @@
 /* ============================================================
-   Customer Management Module - Professional Theme
-   Studio 3 Interactive | Order Management Application
+   Ira Sportswear - Official Brand Design System
+   Lead Management & Production Workflow Application
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* ============================================================
-   LIGHT THEME (default)
+   LIGHT THEME (Ira Sportswear Athletic Default)
    ============================================================ */
 :root, [data-theme="light"] {
-    --primary:       #111827;
-    --primary-light: #1f2937;
-    --accent:        #e53935;
-    --accent-hover:  #c62828;
-    --accent-soft:   rgba(229,57,53,0.08);
-    --accent-glow:   rgba(229,57,53,0.18);
-    --success:       #059669;
-    --success-soft:  rgba(5,150,105,0.1);
-    --warning:       #d97706;
-    --warning-soft:  rgba(217,119,6,0.1);
-    --danger:        #dc2626;
-    --danger-soft:   rgba(220,38,38,0.1);
-    --info:          #2563eb;
-    --info-soft:     rgba(37,99,235,0.1);
-    --bg:            #f8fafc;
-    --bg-secondary:  #f1f5f9;
-    --surface:       #ffffff;
-    --surface-2:     #f8fafc;
-    --border:        #e2e8f0;
-    --border-strong: #cbd5e1;
-    --border-color:  #e2e8f0;
-    --text-primary:  #0f172a;
-    --text-secondary:#475569;
-    --text-muted:    #94a3b8;
-    --text-white:    #ffffff;
-    --bg-card:       #ffffff;
-    --sidebar-bg:    #0f172a;
-    --sidebar-text:  rgba(255,255,255,0.7);
-    --sidebar-hover: rgba(255,255,255,0.06);
-    --sidebar-active:rgba(229,57,53,0.15);
-    --sidebar-border:rgba(255,255,255,0.06);
-    --modal-overlay: rgba(15,23,42,0.6);
-    --sidebar-w:     264px;
-    --header-h:      64px;
-    --radius:        10px;
-    --radius-lg:     16px;
-    --radius-xl:     20px;
-    --shadow-sm:     0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
-    --shadow:        0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
-    --shadow-lg:     0 10px 25px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
-    --shadow-xl:     0 20px 40px -4px rgba(0,0,0,0.1);
-    --transition:    all 0.2s cubic-bezier(0.4,0,0.2,1);
-    --transition-slow: all 0.35s cubic-bezier(0.4,0,0.2,1);
+    /* --- Official Ira Sportswear Brand Colors --- */
+    --brand-navy:       #161e38;  /* Primary Deep Athletic Navy */
+    --brand-navy-dark:  #0f1426;  /* Sidebar & Deep Chrome */
+    --brand-navy-light: #222d54;  /* Card Headings & Accents */
+    --brand-red:        #ec1e24;  /* Official Logo Sport Red */
+    --brand-red-hover:  #d0161b;
+    --brand-red-soft:   rgba(236, 30, 36, 0.08);
+    --brand-red-glow:   rgba(236, 30, 36, 0.22);
+    --brand-neon:       #00e676;  /* Sportswear High-Visibility Neon Green */
+    --brand-neon-hover: #00c853;
+    --brand-neon-soft:  rgba(0, 230, 118, 0.12);
+    --brand-neon-glow:  rgba(0, 230, 118, 0.25);
+
+    /* --- Core Semantic Mappings --- */
+    --primary:          #161e38;  /* Deep Navy */
+    --primary-light:    #222d54;
+    --accent:           #ec1e24;  /* Sport Red */
+    --accent-hover:     #d0161b;
+    --accent-soft:      rgba(236, 30, 36, 0.08);
+    --accent-glow:      rgba(236, 30, 36, 0.22);
+    --success:          #059669;
+    --success-soft:     rgba(5, 150, 105, 0.1);
+    --warning:          #d97706;
+    --warning-soft:     rgba(217, 119, 6, 0.1);
+    --danger:           #dc2626;
+    --danger-soft:      rgba(220, 38, 38, 0.1);
+    --info:             #2563eb;
+    --info-soft:        rgba(37, 99, 235, 0.1);
+
+    /* --- Surfaces & Contrast --- */
+    --bg:               #f5f7fb;  /* Clean sports-tech canvas */
+    --bg-secondary:     #eaeff8;
+    --surface:          #ffffff;
+    --surface-2:        #f8fafc;
+    --border:           #dbe2ee;
+    --border-strong:    #c4d0e2;
+    --border-color:     #dbe2ee;
+    --text-primary:     #0d1326;  /* High contrast athletic navy-black */
+    --text-secondary:   #4b556e;
+    --text-muted:       #8893a7;
+    --text-white:       #ffffff;
+    --bg-card:          #ffffff;
+
+    /* --- Sidebar Branding --- */
+    --sidebar-bg:       #0f1426;  /* Deep Athletic Navy */
+    --sidebar-text:     rgba(255, 255, 255, 0.82);
+    --sidebar-hover:    rgba(255, 255, 255, 0.08);
+    --sidebar-active:   linear-gradient(90deg, rgba(236, 30, 36, 0.2) 0%, rgba(39, 35, 97, 0.4) 100%);
+    --sidebar-border:   rgba(255, 255, 255, 0.08);
+    --modal-overlay:    rgba(15, 20, 38, 0.72);
+    --sidebar-w:        264px;
+    --header-h:         64px;
+    --radius:           10px;
+    --radius-lg:        16px;
+    --radius-xl:        20px;
+    --shadow-sm:        0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
+    --shadow:           0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+    --shadow-lg:        0 10px 25px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
+    --shadow-xl:        0 20px 40px -4px rgba(0,0,0,0.1);
+    --transition:       all 0.2s cubic-bezier(0.4,0,0.2,1);
+    --transition-slow:  all 0.35s cubic-bezier(0.4,0,0.2,1);
 }
 
 /* ============================================================
-   DARK THEME
+   DARK THEME (Ira Sportswear High Contrast Athletic Dark)
    ============================================================ */
 [data-theme="dark"] {
-    --primary:       #e2e8f0;
-    --primary-light: #cbd5e1;
-    --accent:        #ef5350;
-    --accent-hover:  #f44336;
-    --accent-soft:   rgba(239,83,80,0.12);
-    --accent-glow:   rgba(239,83,80,0.25);
-    --success:       #34d399;
-    --success-soft:  rgba(52,211,153,0.12);
-    --warning:       #fbbf24;
-    --warning-soft:  rgba(251,191,36,0.12);
-    --danger:        #f87171;
-    --danger-soft:   rgba(248,113,113,0.12);
-    --info:          #60a5fa;
-    --info-soft:     rgba(96,165,250,0.12);
-    --bg:            #0b0f19;
-    --bg-secondary:  #111827;
-    --surface:       #1e293b;
-    --surface-2:     #0f172a;
-    --border:        #334155;
-    --border-strong: #475569;
-    --border-color:  #334155;
-    --text-primary:  #f1f5f9;
-    --text-secondary:#94a3b8;
-    --text-muted:    #64748b;
-    --text-white:    #ffffff;
-    --bg-card:       #1e293b;
-    --sidebar-bg:    #0f172a;
-    --sidebar-text:  rgba(255,255,255,0.6);
-    --sidebar-hover: rgba(255,255,255,0.05);
-    --sidebar-active:rgba(239,83,80,0.15);
-    --sidebar-border:rgba(255,255,255,0.05);
-    --modal-overlay: rgba(0,0,0,0.7);
-    --shadow-sm:     0 1px 2px rgba(0,0,0,0.3);
-    --shadow:        0 4px 6px rgba(0,0,0,0.3);
-    --shadow-lg:     0 10px 25px rgba(0,0,0,0.4);
-    --shadow-xl:     0 20px 40px rgba(0,0,0,0.5);
+    --brand-navy:       #1e284a;
+    --brand-navy-dark:  #0a0e1c;
+    --brand-navy-light: #2b3966;
+    --brand-red:        #ff3b42;
+    --brand-red-hover:  #ec1e24;
+    --brand-red-soft:   rgba(255, 59, 66, 0.12);
+    --brand-red-glow:   rgba(255, 59, 66, 0.28);
+    --brand-neon:       #00e676;
+    --brand-neon-hover: #00c853;
+    --brand-neon-soft:  rgba(0, 230, 118, 0.15);
+    --brand-neon-glow:  rgba(0, 230, 118, 0.3);
+
+    --primary:          #e2e8f0;
+    --primary-light:    #cbd5e1;
+    --accent:           #ff3b42;
+    --accent-hover:     #ec1e24;
+    --accent-soft:      rgba(255, 59, 66, 0.12);
+    --accent-glow:      rgba(255, 59, 66, 0.28);
+    --success:          #34d399;
+    --success-soft:     rgba(52, 211, 153, 0.12);
+    --warning:          #fbbf24;
+    --warning-soft:     rgba(251, 191, 36, 0.12);
+    --danger:           #f87171;
+    --danger-soft:      rgba(248, 113, 113, 0.12);
+    --info:             #60a5fa;
+    --info-soft:        rgba(96, 165, 250, 0.12);
+    --bg:               #0a0e1c;
+    --bg-secondary:     #0f1426;
+    --surface:          #161e38;
+    --surface-2:        #0f1426;
+    --border:           #243054;
+    --border-strong:    #354474;
+    --border-color:     #243054;
+    --text-primary:     #f8fafc;
+    --text-secondary:   #a5b4cf;
+    --text-muted:       #6b7c9e;
+    --text-white:       #ffffff;
+    --bg-card:          #161e38;
+    --sidebar-bg:       #0a0e1c;
+    --sidebar-text:     rgba(255, 255, 255, 0.75);
+    --sidebar-hover:    rgba(255, 255, 255, 0.06);
+    --sidebar-active:   linear-gradient(90deg, rgba(255, 59, 66, 0.25) 0%, rgba(30, 40, 74, 0.5) 100%);
+    --sidebar-border:   rgba(255, 255, 255, 0.06);
+    --modal-overlay:    rgba(5, 7, 15, 0.85);
+    --shadow-sm:        0 1px 2px rgba(0,0,0,0.3);
+    --shadow:           0 4px 6px rgba(0,0,0,0.3);
+    --shadow-lg:        0 10px 25px rgba(0,0,0,0.4);
+    --shadow-xl:        0 20px 40px rgba(0,0,0,0.5);
 }
 
 /* ============================================================
@@ -145,24 +175,40 @@ ul { list-style: none; }
     border-right: 1px solid var(--sidebar-border);
 }
 .sidebar-brand {
-    padding: 20px 22px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--sidebar-border);
     display: flex;
     align-items: center;
     gap: 12px;
 }
+.sidebar-brand .brand-logo-img {
+    height: 42px;
+    width: auto;
+    max-width: 68px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 4px 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+.sidebar-brand:hover .brand-logo-img {
+    transform: scale(1.03);
+}
 .sidebar-brand .brand-logo {
     width: 38px; height: 38px;
-    background: linear-gradient(135deg, var(--accent), #b71c1c);
-    border-radius: 10px;
+    background: #ffffff;
+    border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 0.95rem; color: #fff;
+    font-weight: 900; font-size: 0.95rem; color: var(--brand-navy);
     flex-shrink: 0; letter-spacing: -0.5px;
-    box-shadow: 0 2px 8px rgba(229,57,53,0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    border: 2px solid var(--brand-red);
 }
-.sidebar-brand .brand-text { color: #fff; }
-.sidebar-brand .brand-text h2 { font-size: 0.95rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
-.sidebar-brand .brand-text span { font-size: 0.7rem; color: rgba(255,255,255,0.4); font-weight: 400; }
+.sidebar-brand .brand-text { color: #fff; min-width: 0; }
+.sidebar-brand .brand-text h2 { font-size: 0.95rem; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #ffffff; }
+.sidebar-brand .brand-text span { font-size: 0.68rem; color: rgba(255,255,255,0.65); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; display: block; }
 
 .sidebar-nav { flex: 1; padding: 16px 0; overflow-y: auto; min-height: 0; }
 .nav-section-label {
@@ -465,6 +511,27 @@ ul { list-style: none; }
 .btn-success:hover { filter: brightness(1.1); }
 .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
 .btn-danger:hover { filter: brightness(1.1); }
+.btn-neon {
+    background: var(--brand-neon);
+    color: var(--brand-navy-dark);
+    border-color: var(--brand-neon);
+    font-weight: 700;
+}
+.btn-neon:hover {
+    background: var(--brand-neon-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px var(--brand-neon-glow);
+}
+.btn-navy {
+    background: var(--brand-navy);
+    color: #ffffff;
+    border-color: var(--brand-navy);
+}
+.btn-navy:hover {
+    background: var(--brand-navy-light);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
 .btn-ghost {
     background: transparent; border: none;
     padding: 6px 10px; border-radius: 8px; color: var(--text-secondary);
@@ -495,6 +562,8 @@ ul { list-style: none; }
 .badge-warning { background: var(--warning-soft); color: var(--warning); }
 .badge-danger  { background: var(--danger-soft); color: var(--danger); }
 .badge-info    { background: var(--info-soft); color: var(--info); }
+.badge-neon    { background: var(--brand-neon-soft); color: #00873d; border: 1px solid rgba(0, 230, 118, 0.4); font-weight: 700; }
+[data-theme="dark"] .badge-neon { color: #00e676; }
 .badge-default { background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border); }
 
 /* ============================================================
@@ -555,7 +624,8 @@ ul { list-style: none; }
     z-index: 1000;
     align-items: center; justify-content: center; padding: 20px;
 }
-.modal-overlay.active { display: flex; }
+.modal-overlay.active,
+.modal-overlay.show { display: flex; }
 .modal {
     background: var(--surface);
     border-radius: var(--radius-xl);

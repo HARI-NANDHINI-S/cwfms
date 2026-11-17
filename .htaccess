@@ -16,7 +16,7 @@ Options -MultiViews
 </IfModule>
 
 # Deny access to sensitive files
-<FilesMatch "(config\.php|\.env|\.git|composer\.json|README\.md|utils\.py|supabase_setup\.sql|sample_import\.csv)$">
+<FilesMatch "(config\.php|\.env.*|\.git.*|composer\.json|\.sql$|\.md$|utils\.py|sample_import\.csv)$">
     Order allow,deny
     Deny from all
 </FilesMatch>

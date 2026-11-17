@@ -8,7 +8,7 @@
             <div class="reveal">
                 <h1 style="font-size: 3rem; font-weight: 900; margin-bottom: 20px;">Get in <span style="color: var(--primary);">Touch</span></h1>
                 <p style="color: var(--text-muted); line-height: 1.8; margin-bottom: 40px; font-size: 1.1rem;">
-                    Have questions about our enterprise customer management solutions? We're here to help you elevate your business operations.
+                    Have questions about our custom team uniforms and lead management solutions? We're here to help you elevate your athletic brand operations.
                 </p>
                 
                 <div style="display: flex; flex-direction: column; gap: 30px;">

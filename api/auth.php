@@ -19,11 +19,14 @@ $action = $input['action'] ?? $_GET['action'] ?? '';
 // ============================================================
 // GET: Current session info
 // ============================================================
+// GET: Current session info
+// ============================================================
 if ($method === 'GET' && $action === 'me') {
     if (!isset($_SESSION['user'])) {
         jsonResponse(false, 'Not authenticated', null, 401);
     }
-    jsonResponse(true, 'Session active', $_SESSION['user']);
+    $user = getCurrentUser();
+    jsonResponse(true, 'Session active', $user);
 }
 
 // ============================================================
@@ -31,15 +34,21 @@ if ($method === 'GET' && $action === 'me') {
 // ============================================================
 if ($method === 'GET' && $action === 'users') {
     $user = getCurrentUser();
-    if ($user['role'] !== 'admin') {
-        jsonResponse(false, 'Permission denied', null, 403);
+    if (!canManageUsers($user)) {
+        jsonResponse(false, 'Permission denied. Only Admin can access user management.', null, 403);
     }
 
     $db = new Supabase(true);
     $result = $db->select('user_roles', ['order' => 'created_at.asc']);
 
     if ($result['status'] === 200) {
-        jsonResponse(true, 'Users fetched', $result['data'] ?? []);
+        $users = $result['data'] ?? [];
+        foreach ($users as &$u) {
+            $u['role_label'] = getRoleLabel($u['role'] ?? 'staff');
+            $u['business_role'] = normalizeRole($u['role'] ?? 'staff');
+        }
+        unset($u);
+        jsonResponse(true, 'Users fetched', $users);
     } else {
         jsonResponse(false, 'Failed to fetch users', null, 500);
     }
@@ -50,15 +59,20 @@ if ($method === 'GET' && $action === 'users') {
 // ============================================================
 if ($method === 'POST' && $action === 'update_role') {
     $currentUser = getCurrentUser();
-    if ($currentUser['role'] !== 'admin') {
-        jsonResponse(false, 'Permission denied', null, 403);
+    if (!canManageUsers($currentUser)) {
+        jsonResponse(false, 'Permission denied. Only Admin can update user roles.', null, 403);
     }
 
     $userId = sanitize($input['user_id'] ?? '');
-    $role   = sanitize($input['role'] ?? '');
+    $role   = strtolower(sanitize($input['role'] ?? ''));
 
-    if (!$userId || !in_array($role, ['admin', 'manager', 'staff'])) {
-        jsonResponse(false, 'Invalid input', null, 400);
+    if ($userId === ($currentUser['id'] ?? '')) {
+        jsonResponse(false, 'Administrators cannot modify their own role.', null, 403);
+    }
+
+    $validRoles = ['admin', 'manager', 'staff', 'sales_manager', 'sales_executive'];
+    if (!$userId || !in_array($role, $validRoles, true)) {
+        jsonResponse(false, 'Invalid input. Allowed roles: admin, manager, staff, sales_manager, sales_executive.', null, 400);
     }
 
     $db = new Supabase(true);
@@ -76,20 +90,21 @@ if ($method === 'POST' && $action === 'update_role') {
 // ============================================================
 if ($method === 'POST' && $action === 'create_user') {
     $currentUser = getCurrentUser();
-    if ($currentUser['role'] !== 'admin') {
-        jsonResponse(false, 'Permission denied', null, 403);
+    if (!canManageUsers($currentUser)) {
+        jsonResponse(false, 'Permission denied. Only Admin can create users.', null, 403);
     }
 
     $email = strtolower(sanitize($input['email'] ?? ''));
     $name  = sanitize($input['name'] ?? '');
-    $role  = sanitize($input['role'] ?? 'staff');
+    $role  = strtolower(sanitize($input['role'] ?? 'staff'));
 
     if (!$email || !$name || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         jsonResponse(false, 'Valid name and email required', null, 400);
     }
 
-    if (!in_array($role, ['admin', 'manager', 'staff'])) {
-        jsonResponse(false, 'Invalid role', null, 400);
+    $validRoles = ['admin', 'manager', 'staff', 'sales_manager', 'sales_executive'];
+    if (!in_array($role, $validRoles, true)) {
+        jsonResponse(false, 'Invalid role. Allowed roles: admin, manager, staff, sales_manager, sales_executive.', null, 400);
     }
 
     $db = new Supabase(true);
@@ -112,14 +127,18 @@ if ($method === 'POST' && $action === 'create_user') {
 // ============================================================
 if ($method === 'POST' && $action === 'toggle_user') {
     $currentUser = getCurrentUser();
-    if ($currentUser['role'] !== 'admin') {
-        jsonResponse(false, 'Permission denied', null, 403);
+    if (!canManageUsers($currentUser)) {
+        jsonResponse(false, 'Permission denied. Only Admin can toggle user status.', null, 403);
     }
 
     $userId   = sanitize($input['user_id'] ?? '');
     $isActive = (bool)($input['is_active'] ?? false);
 
     if (!$userId) jsonResponse(false, 'User ID required', null, 400);
+
+    if ($userId === ($currentUser['id'] ?? '') && !$isActive) {
+        jsonResponse(false, 'Administrators cannot deactivate their own account.', null, 403);
+    }
 
     $db = new Supabase(true);
     $result = $db->update('user_roles', ['is_active' => $isActive], ['id' => 'eq.' . $userId]);

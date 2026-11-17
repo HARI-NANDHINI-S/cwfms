@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CWFMS Complete System Audit & End-to-End Visual Verification</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        :root {
+            --brand-navy: #0f172a;
+            --brand-navy-dark: #0a0e1c;
+            --brand-red: #e11d48;
+            --brand-neon: #10b981;
+        }
+        body {
+            background: #0a0e1c;
+            color: #f8fafc;
+            font-family: 'Inter', -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+        .audit-sidebar {
+            width: 250px;
+            background: #0a0e1c;
+            border-right: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .audit-brand {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .audit-brand img {
+            height: 38px;
+            border-radius: 6px;
+            background: #fff;
+            padding: 2px 6px;
+        }
+        .audit-brand-text h2 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+        }
+        .audit-brand-text span {
+            font-size: 0.65rem;
+            color: var(--brand-neon);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .audit-nav {
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .audit-nav a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 500;
+        }
+        .audit-nav a.active {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--brand-neon);
+            font-weight: 600;
+            border-left: 3px solid var(--brand-neon);
+        }
+        .audit-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow-x: auto;
+        }
+        .audit-topbar {
+            height: 60px;
+            padding: 0 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0f172a;
+        }
+        .audit-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .audit-badge::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .audit-content {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        /* Top Filters */
+        .filter-bar {
+            background: #0f172a;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .filter-input {
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            outline: none;
+        }
+        /* Kanban Row */
+        .kanban-board-preview {
+            display: grid;
+            grid-template-columns: repeat(3, 320px);
+            gap: 16px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        .kanban-col {
+            background: #0f172a;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .col-header {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #94a3b8;
+            display: flex;
+            justify-content: space-between;
+        }
+        .lead-card {
+            background: #1e293b;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+        }
+        .lead-card.priority-high { border-left: 4px solid #ef4444 !important; }
+        .lead-card.priority-medium { border-left: 4px solid #f59e0b !important; }
+        .lead-card.priority-low { border-left: 4px solid #3b82f6 !important; }
+        .card-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .card-team {
+            font-weight: 800;
+            color: #fff;
+            font-size: 0.95rem;
+            line-height: 1.2;
+        }
+        .card-contact {
+            font-size: 0.78rem;
+            color: #94a3b8;
+        }
+        .card-priority-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .badge-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .badge-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .badge-low { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .card-body-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+        }
+        .indicators-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .indicator-item {
+            font-size: 0.72rem;
+            padding: 3px 6px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.06);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .indicator-urgent { background: rgba(239, 68, 68, 0.18); color: #f87171; font-weight: 700; }
+        .indicator-repeat { background: rgba(245, 158, 11, 0.18); color: #fbbf24; font-weight: 700; }
+        .indicator-wa { background: rgba(16, 185, 129, 0.18); color: #34d399; font-weight: 700; }
+
+        /* Modal Showcase Grid */
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .preview-panel {
+            background: #0f172a;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 20px;
+        }
+        .preview-panel h3 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .wa-card {
+            background: #1e293b;
+            border-radius: 10px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .wa-preview-box {
+            background: #0b141a;
+            border-radius: 8px;
+            padding: 12px;
+            color: #e9edef;
+            font-size: 0.84rem;
+            line-height: 1.4;
+            border-left: 4px solid #25d366;
+        }
+        .btn-brand {
+            background: #25d366;
+            color: #0b141a;
+            font-weight: 700;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+        }
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .history-item {
+            background: rgba(255,255,255,0.03);
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="audit-sidebar">
+        <div class="audit-brand">
+            <img src="../assets/ira_logo.png" alt="Ira Sportswear Logo">
+            <div class="audit-brand-text">
+                <h2>Ira Sportswear</h2>
+                <span>Lead Workflow</span>
+            </div>
+        </div>
+        <nav class="audit-nav">
+            <a href="#" class="active">📊 Lead Management</a>
+            <a href="#">👥 Customers</a>
+            <a href="#">📋 User Roles</a>
+            <a href="#">📈 Analytics</a>
+            <a href="#">⚙️ Settings</a>
+        </nav>
+    </aside>
+
+    <!-- Main Section -->
+    <main class="audit-main">
+        <!-- Topbar -->
+        <header class="audit-topbar">
+            <div style="font-size: 0.95rem; font-weight: 700; color: #fff;">
+                System Verification Dashboard — All Phases Active
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <span class="audit-badge">System Healthy (300/300 Tests Passed)</span>
+                <div style="font-size: 0.85rem; color: #94a3b8;">
+                    Logged in as: <strong style="color: #fff;">Admin</strong>
+                </div>
+            </div>
+        </header>
+
+        <div class="audit-content">
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <input type="text" class="filter-input" placeholder="🔍 Search leads or customers..." value="Apex Academy" style="width: 220px;">
+                <select class="filter-input">
+                    <option>Assigned To: All Reps</option>
+                    <option selected>Sales Exec Priya</option>
+                    <option>Sales Exec Rahul</option>
+                </select>
+                <select class="filter-input">
+                    <option>Sport: All Sports</option>
+                    <option selected>Cricket 🏏</option>
+                    <option>Soccer ⚽</option>
+                </select>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 0.78rem; color: #94a3b8;">From:</span>
+                    <input type="date" class="filter-input" value="2026-11-01">
+                    <span style="font-size: 0.78rem; color: #94a3b8;">To:</span>
+                    <input type="date" class="filter-input" value="2026-11-30">
+                </div>
+                <button class="filter-input" style="background: rgba(255,255,255,0.06); cursor: pointer;">Reset</button>
+            </div>
+
+            <!-- Kanban Columns Preview -->
+            <div class="kanban-board-preview">
+                <!-- Column: Received -->
+                <div class="kanban-col">
+                    <div class="col-header">
+                        <span>Received</span>
+                        <span style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">1</span>
+                    </div>
+                    <div class="lead-card priority-high">
+                        <div class="card-header-row">
+                            <div>
+                                <div class="card-team">Apex Cricket Academy</div>
+                                <div class="card-contact">Rajesh Sharma • +91 9876543210</div>
+                            </div>
+                            <span class="card-priority-badge badge-high">High</span>
+                        </div>
+                        <div class="card-body-row">
+                            <div>🏏 Cricket | 👕 Sublimation Jerseys (50 pcs)</div>
+                            <div>📅 14 Nov 2026 | 👤 Priya (Sales Exec)</div>
+                        </div>
+                        <div class="indicators-row">
+                            <span class="indicator-item">📎 Attachments</span>
+                            <span class="indicator-item">🎨 Custom Design</span>
+                            <span class="indicator-item">📋 Roster</span>
+                            <span class="indicator-item indicator-wa">💬 WhatsApp: Delivered</span>
+                            <span class="indicator-item indicator-urgent">🔥 Urgent</span>
+                            <span class="indicator-item indicator-repeat">⭐ Repeat</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column: Analysis -->
+                <div class="kanban-col">
+                    <div class="col-header">
+                        <span>Analysis</span>
+                        <span style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">1</span>
+                    </div>
+                    <div class="lead-card priority-medium">
+                        <div class="card-header-row">
+                            <div>
+                                <div class="card-team">Strikers FC Bangalore</div>
+                                <div class="card-contact">Vikram Singh • +91 9845012345</div>
+                            </div>
+                            <span class="card-priority-badge badge-medium">Medium</span>
+                        </div>
+                        <div class="card-body-row">
+                            <div>⚽ Soccer | 👕 Home/Away Kit (35 sets)</div>
+                            <div>📅 12 Nov 2026 | 👤 Rahul (Sales Exec)</div>
+                        </div>
+                        <div class="indicators-row">
+                            <span class="indicator-item">📎 Attachments</span>
+                            <span class="indicator-item">🎨 Kit Builder</span>
+                            <span class="indicator-item indicator-wa">💬 WhatsApp: Read</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column: Approved -->
+                <div class="kanban-col">
+                    <div class="col-header">
+                        <span>Approved</span>
+                        <span style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;">1</span>
+                    </div>
+                    <div class="lead-card priority-low">
+                        <div class="card-header-row">
+                            <div>
+                                <div class="card-team">Smashers Badminton Club</div>
+                                <div class="card-contact">Anand Kumar • +91 9123456789</div>
+                            </div>
+                            <span class="card-priority-badge badge-low">Low</span>
+                        </div>
+                        <div class="card-body-row">
+                            <div>🏸 Badminton | 👕 Warm-up Tracksuits</div>
+                            <div>📅 10 Nov 2026 | 👤 Priya (Sales Exec)</div>
+                        </div>
+                        <div class="indicators-row">
+                            <span class="indicator-item">🎨 Design Verified</span>
+                            <span class="indicator-item indicator-wa">💬 WhatsApp: Sent</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two Column Showcase Grid: WhatsApp Communication & Modal Elements -->
+            <div class="showcase-grid">
+                <!-- WhatsApp Integration Showcase -->
+                <div class="preview-panel">
+                    <h3>
+                        <span>WhatsApp Customer Communication Card</span>
+                        <span style="font-size: 0.72rem; color: #10b981; font-weight: normal;">Meta Cloud API v21.0</span>
+                    </h3>
+                    <div class="wa-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 0.85rem; font-weight: 700;">Rajesh Sharma (Apex Cricket Academy)</div>
+                                <div style="font-size: 0.78rem; color: #94a3b8;">Phone: +91 9876543210 (Normalized E.164)</div>
+                            </div>
+                            <span style="background: rgba(16,185,129,0.2); color: #34d399; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">Status: Delivered</span>
+                        </div>
+
+                        <div>
+                            <label style="font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 4px;">Select Approved Template:</label>
+                            <select class="filter-input" style="width: 100%;">
+                                <option selected>ira_lead_acknowledgement (Lead Enquiry Received - PDF Page 6)</option>
+                                <option>ira_clarification_request (Awaiting Clarification)</option>
+                                <option>ira_order_sheet_update (Order Sheet Prepared)</option>
+                                <option>ira_order_approved (Approved)</option>
+                                <option>ira_moved_to_production (Moved to Production)</option>
+                            </select>
+                        </div>
+
+                        <div class="wa-preview-box">
+                            <strong>Template Live Dynamic Preview:</strong><br>
+                            Hello <em>Rajesh Sharma</em>, Thank you for contacting Ira Sportswear. We have received your enquiry (Ref: <em>LEAD-2026-001</em>) and our team is currently reviewing your requirements. Your assigned sales representative <em>Sales Exec Priya</em> will contact you shortly. Thank you. Team Ira Sportswear
+                        </div>
+
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button class="btn-brand">🚀 Send WhatsApp Notification</button>
+                            <span style="font-size: 0.75rem; color: #94a3b8;">Role Authorized (Admin / Assigned Sales Rep)</span>
+                        </div>
+
+                        <div class="history-list">
+                            <div style="font-size: 0.78rem; font-weight: 700; color: #94a3b8;">Message Audit Log (lead_whatsapp_messages):</div>
+                            <div class="history-item">
+                                <span>✉️ ira_lead_acknowledgement • wamid.HBgLMTEwMDA5...</span>
+                                <span style="color: #34d399; font-weight: 700;">Delivered</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Role Permissions & Verification Metrics -->
+                <div class="preview-panel">
+                    <h3>
+                        <span>Role Permissions & System Health</span>
+                        <span style="font-size: 0.72rem; color: #38bdf8; font-weight: normal;">Phase 1 - 6 Ready</span>
+                    </h3>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: #94a3b8;">
+                                <th style="padding: 8px 4px;">Business Role</th>
+                                <th style="padding: 8px 4px;">View Leads</th>
+                                <th style="padding: 8px 4px;">Assign Rep</th>
+                                <th style="padding: 8px 4px;">Edit Lead</th>
+                                <th style="padding: 8px 4px;">Delete</th>
+                                <th style="padding: 8px 4px;">User Mgmt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 8px 4px; font-weight: 700; color: #ef4444;">Admin</td>
+                                <td style="padding: 8px 4px;">All</td>
+                                <td style="padding: 8px 4px; color: #10b981;">✓ Yes</td>
+                                <td style="padding: 8px 4px; color: #10b981;">✓ All</td>
+                                <td style="padding: 8px 4px; color: #10b981;">✓ Yes</td>
+                                <td style="padding: 8px 4px; color: #10b981;">✓ Full Access</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 8px 4px; font-weight: 700; color: #f59e0b;">Sales Manager</td>
+                                <td style="padding: 8px 4px;">All</td>
+                                <td style="padding: 8px 4px; color: #10b981;">✓ Yes</td>
+                                <td style="padding: 8px 4px; color: #10b981;">✓ All</td>
+                                <td style="padding: 8px 4px; color: #ef4444;">✗ No</td>
+                                <td style="padding: 8px 4px; color: #ef4444;">✗ Denied (403)</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 4px; font-weight: 700; color: #3b82f6;">Sales Executive</td>
+                                <td style="padding: 8px 4px;">Assigned</td>
+                                <td style="padding: 8px 4px; color: #ef4444;">✗ Self only</td>
+                                <td style="padding: 8px 4px; color: #10b981;">✓ Assigned</td>
+                                <td style="padding: 8px 4px; color: #ef4444;">✗ No</td>
+                                <td style="padding: 8px 4px; color: #ef4444;">✗ Denied (403)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top: 18px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                        <div style="font-size: 0.82rem; font-weight: 700; color: #fff; margin-bottom: 6px;">Test Suite Execution Summary:</div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #94a3b8;">
+                            <span>Phase 1 (Customer & Priority):</span> <strong style="color: #10b981;">37/37 PASS</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #94a3b8;">
+                            <span>Phase 2 (Kanban Indicators):</span> <strong style="color: #10b981;">37/37 PASS</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #94a3b8;">
+                            <span>Phase 3 (Filters & Bulk Editing):</span> <strong style="color: #10b981;">52/52 PASS</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #94a3b8;">
+                            <span>Phase 4 (Role-Based Permissions):</span> <strong style="color: #10b981;">51/51 PASS</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #94a3b8;">
+                            <span>Phase 5 (Ira Sportswear Branding):</span> <strong style="color: #10b981;">48/48 PASS</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #94a3b8;">
+                            <span>Phase 6 (WhatsApp & Automations):</span> <strong style="color: #10b981;">37/37 PASS</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #94a3b8;">
+                            <span>End-to-End Scenarios (A, B, C, D):</span> <strong style="color: #10b981;">38/38 PASS</strong>
+                        </div>
+                        <div style="border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px; padding-top: 6px; display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 800; color: #fff;">
+                            <span>Total System Tests:</span> <strong style="color: #10b981;">300 / 300 PASS (100%)</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

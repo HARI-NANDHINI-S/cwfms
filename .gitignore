@@ -1,0 +1,13 @@
+# Environment configuration
+.env
+.env.*
+!.env.example
+
+# Database dumps and backups
+*.dump
+*.sql.bak
+backups/
+
+# Logs and cache
+*.log
+.cache/
