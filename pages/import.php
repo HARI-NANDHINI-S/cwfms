@@ -80,7 +80,7 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 Leads Pipeline
             </a>
-            <?php if (hasRole('admin')): ?>
+            <?php if (canManageUsers($user)): ?>
             <div class="nav-section-label" style="margin-top:8px">Admin</div>
             <a href="users.php" class="nav-item">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>

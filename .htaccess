@@ -7,7 +7,12 @@ Options -MultiViews
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https:;"
 </IfModule>
+
+# Request size limits (20MB max request body)
+LimitRequestBody 20971520
 
 # PHP settings
 <IfModule mod_php.c>
@@ -15,10 +20,15 @@ Options -MultiViews
     php_flag log_errors On
 </IfModule>
 
-# Deny access to sensitive files
+# Deny access to sensitive files (Apache 2.4 & Apache 2.2 compatible)
 <FilesMatch "(config\.php|\.env.*|\.git.*|composer\.json|\.sql$|\.md$|utils\.py|sample_import\.csv)$">
-    Order allow,deny
-    Deny from all
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
 </FilesMatch>
 
 # Allow CSS, JS, images
@@ -40,7 +50,7 @@ Options -MultiViews
 # Pretty URLs (optional future routing)
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /customer-management/
+    RewriteBase /
 
     # Don't rewrite real files/directories
     RewriteCond %{REQUEST_FILENAME} !-f

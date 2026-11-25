@@ -205,16 +205,41 @@ function requireCsrfToken(): void {
 }
 
 // ============================================================
-// Login Rate Limiting Engine
+// Login Rate Limiting Engine (Persistent Server-Side Storage)
 // ============================================================
+function getRateLimitLockDir(): string {
+    $dir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cwfms_locks';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0700, true);
+    }
+    return $dir;
+}
+
 function checkLoginRateLimit(string $identifier = ''): bool {
-    $key = 'rate_' . ($identifier ?: ($_SERVER['REMOTE_ADDR'] ?? 'client'));
-    $attempts = $_SESSION[$key . '_attempts'] ?? 0;
-    $lastAttempt = $_SESSION[$key . '_time'] ?? 0;
+    $clientIp = $identifier ?: ($_SERVER['REMOTE_ADDR'] ?? 'client');
+    $safeIp = preg_replace('/[^a-zA-Z0-9_.-]/', '_', $clientIp);
+    $filePath = getRateLimitLockDir() . DIRECTORY_SEPARATOR . 'rate_' . $safeIp . '.json';
+
+    if (!file_exists($filePath)) {
+        return true;
+    }
+
+    $content = @file_get_contents($filePath);
+    if (!$content) {
+        return true;
+    }
+
+    $data = @json_decode($content, true);
+    if (!is_array($data)) {
+        return true;
+    }
+
+    $attempts = (int)($data['attempts'] ?? 0);
+    $lastAttempt = (int)($data['time'] ?? 0);
 
     // Window: 15 minutes (900s). Max failed attempts: 6
     if (time() - $lastAttempt > 900) {
-        $_SESSION[$key . '_attempts'] = 0;
+        @unlink($filePath);
         return true;
     }
 
@@ -222,13 +247,39 @@ function checkLoginRateLimit(string $identifier = ''): bool {
 }
 
 function recordFailedLogin(string $identifier = ''): void {
-    $key = 'rate_' . ($identifier ?: ($_SERVER['REMOTE_ADDR'] ?? 'client'));
-    $_SESSION[$key . '_attempts'] = ($_SESSION[$key . '_attempts'] ?? 0) + 1;
-    $_SESSION[$key . '_time'] = time();
+    $clientIp = $identifier ?: ($_SERVER['REMOTE_ADDR'] ?? 'client');
+    $safeIp = preg_replace('/[^a-zA-Z0-9_.-]/', '_', $clientIp);
+    $filePath = getRateLimitLockDir() . DIRECTORY_SEPARATOR . 'rate_' . $safeIp . '.json';
+
+    $attempts = 0;
+    if (file_exists($filePath)) {
+        $content = @file_get_contents($filePath);
+        if ($content) {
+            $data = @json_decode($content, true);
+            if (is_array($data)) {
+                $attempts = (int)($data['attempts'] ?? 0);
+            }
+        }
+    }
+
+    $data = [
+        'attempts' => $attempts + 1,
+        'time'     => time(),
+        'ip'       => $clientIp,
+    ];
+
+    @file_put_contents($filePath, json_encode($data), LOCK_EX);
 }
 
 function clearFailedLogins(string $identifier = ''): void {
-    $key = 'rate_' . ($identifier ?: ($_SERVER['REMOTE_ADDR'] ?? 'client'));
+    $clientIp = $identifier ?: ($_SERVER['REMOTE_ADDR'] ?? 'client');
+    $safeIp = preg_replace('/[^a-zA-Z0-9_.-]/', '_', $clientIp);
+    $filePath = getRateLimitLockDir() . DIRECTORY_SEPARATOR . 'rate_' . $safeIp . '.json';
+    if (file_exists($filePath)) {
+        @unlink($filePath);
+    }
+    // Also clear session keys if present
+    $key = 'rate_' . $clientIp;
     unset($_SESSION[$key . '_attempts'], $_SESSION[$key . '_time']);
 }
 
@@ -344,19 +395,13 @@ class Supabase {
         $rawResponse = curl_exec($ch);
         $curlError = curl_error($ch);
 
-        if ($rawResponse === false && stripos($curlError, 'ssl') !== false) {
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-            $rawResponse = curl_exec($ch);
-            $curlError = curl_error($ch);
-        }
-
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
         $error = $curlError;
         curl_close($ch);
 
         if ($error) {
+            error_log('[CWFMS DB Error] cURL failure during Supabase request: ' . $error);
             return [
                 'error'   => $error,
                 'message' => 'Database connection failed: ' . $error,
@@ -678,6 +723,13 @@ function getRoleLabel(?string $role): string {
     }
 }
 
+function hasRole(string $role, $user = null): bool {
+    $user = $user ?? getCurrentUser();
+    $normUserRole = normalizeRole($user['role'] ?? 'staff');
+    $normTargetRole = normalizeRole($role);
+    return $normUserRole === $normTargetRole;
+}
+
 function isAdmin($user = null): bool {
     $user = $user ?? getCurrentUser();
     return normalizeRole($user['role'] ?? 'staff') === 'admin';
@@ -867,7 +919,7 @@ function getWhatsAppConfig(): array {
         'token'                => $getVal('WHATSAPP_TOKEN', ''),
         'phone_number_id'      => $getVal('WHATSAPP_PHONE_NUMBER_ID', ''),
         'business_account_id'  => $getVal('WHATSAPP_BUSINESS_ACCOUNT_ID', ''),
-        'webhook_verify_token' => $getVal('WHATSAPP_WEBHOOK_VERIFY_TOKEN', 'ira_sportswear_wh_verify_secret_token_2026'),
+        'webhook_verify_token' => $getVal('WHATSAPP_WEBHOOK_VERIFY_TOKEN', ''),
         'app_secret'           => $getVal('WHATSAPP_APP_SECRET', ''),
         'api_version'          => $getVal('WHATSAPP_API_VERSION', 'v21.0'),
         'automations_enabled'  => ($getVal('WHATSAPP_AUTOMATIONS_ENABLED', '1') === '1'),

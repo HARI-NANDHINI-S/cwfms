@@ -231,6 +231,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
             </form>
 
+            <div class="demo-access-panel" style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border);">
+                <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;">Demo Role Access</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="demo-pill" onclick="fillDemo('admin@studio3.com', 'password123')" style="font-size: 0.75rem; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">Admin</button>
+                    <button type="button" class="demo-pill" onclick="fillDemo('manager@studio3.com', 'password123')" style="font-size: 0.75rem; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">Sales Manager</button>
+                    <button type="button" class="demo-pill" onclick="fillDemo('staff@studio3.com', 'password123')" style="font-size: 0.75rem; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">Sales Executive</button>
+                </div>
+            </div>
+
             <div style="margin-top: 20px; text-align: center; border-top: 1px solid var(--border); padding-top: 16px;">
                 <p style="color: var(--text-muted); font-size: 0.82rem;">&copy; <?= date('Y') ?> Ira Sportswear. All rights reserved.</p>
             </div>
@@ -245,6 +254,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
+function fillDemo(email, pass) {
+    const emailEl = document.getElementById('email');
+    const passEl = document.getElementById('password');
+    if (emailEl) emailEl.value = email;
+    if (passEl) passEl.value = pass;
+}
 function toggleTheme() {
     const current = document.documentElement.getAttribute('data-theme') || 'light';
     const next = current === 'dark' ? 'light' : 'dark';

@@ -165,7 +165,7 @@ $db->logActivity($id, 'viewed', null, $user['name'], 'Profile viewed');
 <?php endif; ?>
 <?php if (hasPermission('toggle_status')): ?>
     <?php $isActive = !empty($c['is_active']); ?>
-    <button class="btn btn-sm <?= $isActive ? 'btn-danger' : 'btn-success' ?>" onclick="confirmToggleStatus('<?= $c['id'] ?>', '<?= htmlspecialchars($c['name']) ?>', <?= $isActive ? 'true' : 'false' ?>)">
+    <button class="btn btn-sm <?= $isActive ? 'btn-danger' : 'btn-success' ?>" onclick="confirmToggleStatus('<?= htmlspecialchars($c['id']) ?>', <?= htmlspecialchars(json_encode($c['name']), ENT_QUOTES, 'UTF-8') ?>, <?= $isActive ? 'true' : 'false' ?>)">
         <?= $isActive ? 'Deactivate' : 'Activate' ?>
     </button>
 <?php endif; ?>

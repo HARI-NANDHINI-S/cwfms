@@ -508,7 +508,7 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
 
 <script>
     // System Config
-    window.currentUserRole = '<?= $user['role'] ?>';
+    window.currentUserRole = <?= json_encode($user['role'] ?? 'staff') ?>;
 </script>
 <script src="assets/js/animations.js"></script>
 <script src="assets/js/app.js"></script>
