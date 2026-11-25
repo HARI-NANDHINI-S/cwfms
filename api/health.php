@@ -10,9 +10,6 @@ header('Cache-Control: no-cache, no-store, must-revalidate');
 requireApiAuth();
 
 $health = Supabase::testConnection();
+$httpCode = $health['http_status'] ?? ($health['connected'] ? 200 : 503);
 
-if ($health['connected']) {
-    jsonResponse(true, $health['message'], $health);
-}
-
-jsonResponse(false, $health['message'], $health, 503);
+jsonResponse($health['connected'], $health['message'], $health, $httpCode);

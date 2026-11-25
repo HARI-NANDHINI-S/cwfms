@@ -19,10 +19,12 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Import Customers | Customer Management</title>
+    <title>Import Customers | Ira Sportswear</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <link rel="shortcut icon" href="../assets/favicon.ico">
+    <meta name="csrf-token" content="<?= getCsrfToken() ?>">
     <script>(function(){var t=localStorage.getItem('cm-theme');if(t){document.documentElement.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){document.documentElement.setAttribute('data-theme','dark')}else{document.documentElement.setAttribute('data-theme','light')}})();</script>
     <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e53935'/><text y='.9em' font-size='80' x='10'>S3</text></svg>">
     <style>
         .import-zone { border: 2px dashed var(--border-color); border-radius: 12px; padding: 48px 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg-secondary); }
         .import-zone:hover, .import-zone.dragover { border-color: var(--accent); background: rgba(229,57,53,0.04); }
@@ -57,8 +59,8 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
 <div class="app-wrapper">
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-logo">S3</div>
-            <div class="brand-text"><h2>Studio 3</h2><span>Order Management</span></div>
+            <img src="../assets/ira_logo_web.png" alt="Ira Sportswear Logo" class="brand-logo-img">
+            <div class="brand-text"><h2>Ira Sportswear</h2><span>Lead Management</span></div>
         </div>
         <nav class="sidebar-nav">
             <div class="nav-section-label">Main</div>
@@ -74,6 +76,17 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Import CSV
             </a>
+            <a href="leads.php" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Leads Pipeline
+            </a>
+            <?php if (hasRole('admin')): ?>
+            <div class="nav-section-label" style="margin-top:8px">Admin</div>
+            <a href="users.php" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                User Management
+            </a>
+            <?php endif; ?>
         </nav>
         <div class="theme-toggle-wrap">
             <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">

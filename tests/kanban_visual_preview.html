@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Kanban Board Preview - Ira Sportswear</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        body { padding: 24px; background: #0f1117; color: #f0f2f5; font-family: Inter, system-ui, -apple-system, sans-serif; }
+        .preview-header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px; }
+        .preview-header h1 { font-size: 1.6rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px; }
+        .preview-header .badge-ira { background: #e53935; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 900; }
+        .lead-kanban { display: grid; grid-template-columns: repeat(4, 300px); gap: 16px; overflow-x: auto; padding-bottom: 16px; }
+        .kanban-column { background: #161a23; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; min-height: 480px; padding: 14px; display: flex; flex-direction: column; width: 100%; box-sizing: border-box; }
+        .kanban-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .kanban-card { background: #1c212c; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); position: relative; }
+        .kanban-card[data-priority="high"] { border-left: 4px solid #ef5350; }
+        .kanban-card[data-priority="medium"] { border-left: 4px solid #fb8c00; }
+        .kanban-card[data-priority="low"] { border-left: 4px solid #42a5f5; }
+        .kanban-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+        .card-titles { min-width: 0; flex: 1; }
+        .card-academy-title { font-size: 0.94rem; font-weight: 800; line-height: 1.25; margin: 0 0 2px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .card-contact-name { font-size: 0.76rem; color: #9aa0a6; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .kanban-card-body { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; font-size: 0.8rem; }
+        .card-row { display: flex; align-items: center; gap: 7px; color: #bdc1c6; min-width: 0; }
+        .card-row .row-icon { font-size: 0.88rem; flex-shrink: 0; }
+        .card-row .row-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+        .card-row.sport-row { font-weight: 700; color: #e8eaed; }
+        .card-source-tag { margin-left: auto; font-size: 0.68rem; font-weight: 600; color: #9aa0a6; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+        .card-indicators { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 9px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1); min-height: 22px; }
+        .indicator-item { display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem; line-height: 1; padding: 3px 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; }
+        .indicator-item.urgent { border-color: rgba(239,83,80,0.5); background: rgba(239,83,80,0.14); }
+        .indicator-item.repeat { border-color: rgba(255,193,7,0.5); background: rgba(255,193,7,0.14); }
+        .indicator-item.wa-sent { border-color: rgba(67,160,71,0.5); background: rgba(67,160,71,0.14); }
+        .indicator-item.wa-req { border-color: rgba(66,165,245,0.5); background: rgba(66,165,245,0.14); }
+        .indicator-item.wa-fail { border-color: rgba(229,57,53,0.5); background: rgba(229,57,53,0.14); }
+        .priority-badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+        .priority-badge.high { background: rgba(239,83,80,0.14); color: #ef5350; border: 1px solid rgba(239,83,80,0.3); }
+        .priority-badge.medium { background: rgba(251,140,0,0.14); color: #fb8c00; border: 1px solid rgba(251,140,0,0.3); }
+        .priority-badge.low { background: rgba(66,165,245,0.14); color: #42a5f5; border: 1px solid rgba(66,165,245,0.3); }
+        .status-badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 999px; font-size: 0.68rem; font-weight: 700; }
+        .status-blue { background: rgba(66,165,245,0.14); color: #42a5f5; }
+        .status-orange { background: rgba(251,140,0,0.14); color: #fb8c00; }
+        .status-purple { background: rgba(171,71,188,0.14); color: #ab47bc; }
+        .card-footer-actions { margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-view { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #e8eaed; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="preview-header">
+        <h1><span class="badge-ira">IRA SPORTSWEAR</span> Lead Management — Kanban Board (Phase 2 Preview)</h1>
+        <div style="font-size:0.85rem; color:#9aa0a6;">Live Card Layout & Indicator Badges Specification</div>
+    </div>
+
+    <div class="lead-kanban">
+        <!-- COLUMN 1: Received -->
+        <div class="kanban-column">
+            <div class="kanban-header">
+                <strong>Received</strong>
+                <span class="status-badge status-blue">2</span>
+            </div>
+
+            <!-- Card 1: All Indicators active -->
+            <div class="kanban-card" data-priority="high">
+                <div class="kanban-card-header">
+                    <div class="card-titles">
+                        <h4 class="card-academy-title" title="Braves Cricket Club">Braves Cricket Club</h4>
+                        <div class="card-contact-name" title="John Doe">👤 John Doe</div>
+                    </div>
+                    <span class="priority-badge high">HIGH</span>
+                </div>
+                <div class="kanban-card-body">
+                    <div class="card-row sport-row">
+                        <span class="row-icon">🏏</span>
+                        <span class="row-text">Cricket</span>
+                        <span class="card-source-tag">Kit Builder</span>
+                    </div>
+                    <div class="card-row" title="Playing T Shirt, Trouser, Cap">
+                        <span class="row-icon">👕</span>
+                        <span class="row-text">Playing T Shirt, Trouser, Cap</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="row-icon">📅</span>
+                        <span class="row-text">10-Jun-2026</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="row-icon">👤</span>
+                        <span class="row-text">Arun Kumar</span>
+                    </div>
+                </div>
+                <div class="card-indicators">
+                    <span class="indicator-item" title="📎 Attachments available">📎</span>
+                    <span class="indicator-item" title="🎨 Design uploaded">🎨</span>
+                    <span class="indicator-item" title="📋 Player roster received">📋</span>
+                    <span class="indicator-item wa-sent" title="💬 WhatsApp notification sent">💬</span>
+                    <span class="indicator-item urgent" title="🔥 Urgent: High priority lead">🔥</span>
+                    <span class="indicator-item repeat" title="⭐ Repeat customer">⭐</span>
+                </div>
+                <div class="card-footer-actions">
+                    <span class="status-badge status-blue">Received</span>
+                    <button class="btn-view">View</button>
+                </div>
+            </div>
+
+            <!-- Card 2: Medium priority -->
+            <div class="kanban-card" data-priority="medium">
+                <div class="kanban-card-header">
+                    <div class="card-titles">
+                        <h4 class="card-academy-title" title="Royal Tennis Academy">Royal Tennis Academy</h4>
+                        <div class="card-contact-name" title="Vikram Verma">👤 Vikram Verma</div>
+                    </div>
+                    <span class="priority-badge medium">MEDIUM</span>
+                </div>
+                <div class="kanban-card-body">
+                    <div class="card-row sport-row">
+                        <span class="row-icon">🎾</span>
+                        <span class="row-text">Tennis</span>
+                        <span class="card-source-tag">Website</span>
+                    </div>
+                    <div class="card-row" title="Travel Polo, Shorts">
+                        <span class="row-icon">👕</span>
+                        <span class="row-text">Travel Polo, Shorts</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="row-icon">📅</span>
+                        <span class="row-text">12-Jun-2026</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="row-icon">👤</span>
+                        <span class="row-text">Praveen</span>
+                    </div>
+                </div>
+                <div class="card-indicators">
+                    <span class="indicator-item" title="🎨 Design uploaded">🎨</span>
+                    <span class="indicator-item wa-req" title="💬 WhatsApp notification requested">💬</span>
+                </div>
+                <div class="card-footer-actions">
+                    <span class="status-badge status-blue">Received</span>
+                    <button class="btn-view">View</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMN 2: Analysis -->
+        <div class="kanban-column">
+            <div class="kanban-header">
+                <strong>Analysis</strong>
+                <span class="status-badge status-orange">1</span>
+            </div>
+
+            <div class="kanban-card" data-priority="low">
+                <div class="kanban-card-header">
+                    <div class="card-titles">
+                        <h4 class="card-academy-title" title="Mumbai Strikers Club">Mumbai Strikers Club</h4>
+                        <div class="card-contact-name" title="Priya Sharma">👤 Priya Sharma</div>
+                    </div>
+                    <span class="priority-badge low">LOW</span>
+                </div>
+                <div class="kanban-card-body">
+                    <div class="card-row sport-row">
+                        <span class="row-icon">⚽</span>
+                        <span class="row-text">Soccer</span>
+                        <span class="card-source-tag">WhatsApp</span>
+                    </div>
+                    <div class="card-row" title="Training T Shirt, Shorts">
+                        <span class="row-icon">👕</span>
+                        <span class="row-text">Training T Shirt, Shorts</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="row-icon">📅</span>
+                        <span class="row-text">14-Jun-2026</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="row-icon">👤</span>
+                        <span class="row-text">Karthik</span>
+                    </div>
+                </div>
+                <div class="card-indicators">
+                    <span class="indicator-item" title="📎 Attachments available">📎</span>
+                    <span class="indicator-item repeat" title="⭐ Repeat customer">⭐</span>
+                </div>
+                <div class="card-footer-actions">
+                    <span class="status-badge status-orange">Analysis</span>
+                    <button class="btn-view">View</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMN 3: Order Sheet Prepared -->
+        <div class="kanban-column">
+            <div class="kanban-header">
+                <strong>Order Sheet Prepared</strong>
+                <span class="status-badge status-purple">1</span>
+            </div>
+
+            <div class="kanban-card" data-priority="high">
+                <div class="kanban-card-header">
+                    <div class="card-titles">
+                        <h4 class="card-academy-title" title="Bangalore Warriors Academy">Bangalore Warriors Academy</h4>
+                        <div class="card-contact-name" title="Lakshmi Devi">👤 Lakshmi Devi</div>
+                    </div>
+                    <span class="priority-badge high">HIGH</span>
+                </div>
+                <div class="kanban-card-body">
+                    <div class="card-row sport-row">
+                        <span class="row-icon">🏸</span>
+                        <span class="row-text">Badminton</span>
+                        <span class="card-source-tag">Email</span>
+                    </div>
+                    <div class="card-row" title="Playing T Shirt, Shorts, Sleeveless Jacket">
+                        <span class="row-icon">👕</span>
+                        <span class="row-text">Playing T Shirt, Shorts, Sleeveless Jacket</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="row-icon">📅</span>
+                        <span class="row-text">15-Jun-2026</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="row-icon">👤</span>
+                        <span class="row-text">Sanjay</span>
+                    </div>
+                </div>
+                <div class="card-indicators">
+                    <span class="indicator-item" title="📎 Attachments available">📎</span>
+                    <span class="indicator-item" title="🎨 Design uploaded">🎨</span>
+                    <span class="indicator-item" title="📋 Player roster received">📋</span>
+                    <span class="indicator-item urgent" title="🔥 Urgent: High priority lead">🔥</span>
+                </div>
+                <div class="card-footer-actions">
+                    <span class="status-badge status-purple">Order Sheet Prepared</span>
+                    <button class="btn-view">View</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMN 4: Verified -->
+        <div class="kanban-column">
+            <div class="kanban-header">
+                <strong>Verified</strong>
+                <span class="status-badge" style="background:rgba(0,172,193,0.14); color:#00acc1;">1</span>
+            </div>
+
+            <div class="kanban-card" data-priority="medium">
+                <div class="kanban-card-header">
+                    <div class="card-titles">
+                        <h4 class="card-academy-title" title="Chennai Smashers Pickleball">Chennai Smashers Pickleball</h4>
+                        <div class="card-contact-name" title="Suresh Babu">👤 Suresh Babu</div>
+                    </div>
+                    <span class="priority-badge medium">MEDIUM</span>
+                </div>
+                <div class="kanban-card-body">
+                    <div class="card-row sport-row">
+                        <span class="row-icon">🏓</span>
+                        <span class="row-text">Pickleball</span>
+                        <span class="card-source-tag">Website</span>
+                    </div>
+                    <div class="card-row" title="Travel Polo, Cap">
+                        <span class="row-icon">👕</span>
+                        <span class="row-text">Travel Polo, Cap</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="row-icon">📅</span>
+                        <span class="row-text">16-Jun-2026</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="row-icon">👤</span>
+                        <span class="row-text">Unassigned</span>
+                    </div>
+                </div>
+                <div class="card-indicators">
+                    <span class="indicator-item" title="🎨 Design uploaded">🎨</span>
+                    <span class="indicator-item repeat" title="⭐ Repeat customer">⭐</span>
+                </div>
+                <div class="card-footer-actions">
+                    <span class="status-badge" style="background:rgba(0,172,193,0.14); color:#00acc1;">Verified</span>
+                    <button class="btn-view">View</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

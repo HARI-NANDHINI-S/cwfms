@@ -4,7 +4,7 @@ require_once '../includes/config.php';
 if (!isset($_SESSION['user'])) { header('Location: ../login.php'); exit; }
 
 $user = getCurrentUser();
-if ($user['role'] !== 'admin') { header('Location: ../dashboard.php?error=permission'); exit; }
+if (!canManageUsers($user)) { header('Location: ../dashboard.php?error=permission'); exit; }
 
 $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(explode(' ', $user['name']))));
 ?>
@@ -13,15 +13,19 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management | Customer Management</title>
+    <title>User Management | Ira Sportswear</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <link rel="shortcut icon" href="../assets/favicon.ico">
+    <meta name="csrf-token" content="<?= getCsrfToken() ?>">
     <script>(function(){var t=localStorage.getItem('cm-theme');if(t){document.documentElement.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){document.documentElement.setAttribute('data-theme','dark')}else{document.documentElement.setAttribute('data-theme','light')}})();</script>
     <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e53935'/><text y='.9em' font-size='80' x='10'>S3</text></svg>">
     <style>
         .role-badge { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
         .role-badge.admin   { background: rgba(229,57,53,0.12); color: var(--accent); }
-        .role-badge.manager { background: rgba(30,136,229,0.12); color: #1e88e5; }
-        .role-badge.staff   { background: rgba(67,160,71,0.12); color: #43a047; }
+        .role-badge.manager,
+        .role-badge.sales_manager { background: rgba(30,136,229,0.12); color: #1e88e5; }
+        .role-badge.staff,
+        .role-badge.sales_executive { background: rgba(67,160,71,0.12); color: #43a047; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
         .status-dot.active { background: #43a047; }
         .status-dot.inactive { background: var(--text-muted); }
@@ -31,8 +35,8 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
 <div class="app-wrapper">
     <aside class="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-logo">S3</div>
-            <div class="brand-text"><h2>Studio 3</h2><span>Order Management</span></div>
+            <img src="../assets/ira_logo_web.png" alt="Ira Sportswear Logo" class="brand-logo-img">
+            <div class="brand-text"><h2>Ira Sportswear</h2><span>Lead Management</span></div>
         </div>
         <nav class="sidebar-nav">
             <div class="nav-section-label">Main</div>
@@ -43,6 +47,10 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
             <a href="import.php" class="nav-item">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Import CSV
+            </a>
+            <a href="leads.php" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Leads
             </a>
             <div class="nav-section-label">Admin</div>
             <a href="users.php" class="nav-item active" style="border-left-color:var(--accent)">
@@ -63,7 +71,7 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
                 <div class="user-avatar"><?= htmlspecialchars($initials) ?></div>
                 <div class="user-info">
                     <div class="user-name"><?= htmlspecialchars($user['name']) ?></div>
-                    <div class="user-role"><?= htmlspecialchars($user['role']) ?></div>
+                    <div class="user-role"><?= htmlspecialchars($user['role_label'] ?? getRoleLabel($user['role'])) ?></div>
                 </div>
                 <a href="../logout.php" style="margin-left:auto;color:var(--text-muted)" title="Logout">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -76,7 +84,7 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
         <header class="top-header">
             <div class="header-title">
                 <div class="breadcrumb" style="font-size:0.83rem">
-                    <a href="../dashboard.php" style="color:var(--text-muted);text-decoration:none">Dashboard</a>
+                    <span>Ira Sportswear</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="9 18 15 12 9 6"/></svg>
                     <span>User Management</span>
                 </div>
@@ -119,27 +127,36 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
 
             <!-- Permissions Reference -->
             <div class="card" style="margin-top:20px">
-                <div class="card-header-simple"><h3>Role Permissions Reference</h3></div>
+                <div class="card-header-simple"><h3>Role Permissions Reference (Ira Sportswear Lead Management)</h3></div>
                 <div style="padding:20px">
                     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
                         <?php
                         $roles = [
-                            'admin'   => ['Create', 'Edit', 'Delete', 'View', 'User Management'],
-                            'manager' => ['Create', 'Edit', 'View'],
-                            'staff'   => ['Create', 'View'],
+                            'admin'           => ['Create Leads & Customers', 'Edit All Records', 'Assign & Reassign Leads', 'Update All Lead Statuses', 'Delete Records (Exclusive)', 'User Management (Exclusive)'],
+                            'sales_manager'   => ['Create Leads & Customers', 'Edit All Records', 'Assign & Reassign Leads', 'Update All Lead Statuses', 'CSV Export', 'No Deletion Rights'],
+                            'sales_executive' => ['Create Leads & Customers', 'Edit Assigned Leads Only', 'Limited Status Updates (Assigned Only)', 'View Operations', 'No Assignment Rights', 'No Deletion Rights'],
                         ];
-                        $colors = ['admin' => 'red', 'manager' => 'blue', 'staff' => 'green'];
+                        $roleTitles = [
+                            'admin'           => 'Admin',
+                            'sales_manager'   => 'Sales Manager',
+                            'sales_executive' => 'Sales Executive',
+                        ];
+                        $colors = ['admin' => 'red', 'sales_manager' => 'blue', 'sales_executive' => 'green'];
                         foreach ($roles as $role => $perms): ?>
                         <div class="stat-card" style="flex-direction:column;align-items:flex-start;gap:10px;padding:16px">
                             <div style="display:flex;align-items:center;gap:8px">
-                                <div class="stat-icon <?= $colors[$role] ?>" style="width:32px;height:32px;font-size:0.7rem;font-weight:700"><?= strtoupper($role[0]) ?></div>
-                                <div style="font-weight:600;font-size:0.9rem"><?= ucfirst($role) ?></div>
+                                <div class="stat-icon <?= $colors[$role] ?>" style="width:32px;height:32px;font-size:0.7rem;font-weight:700"><?= strtoupper($roleTitles[$role][0]) ?></div>
+                                <div style="font-weight:600;font-size:0.9rem"><?= $roleTitles[$role] ?></div>
                             </div>
                             <div style="display:flex;flex-direction:column;gap:4px">
-                                <?php foreach ($perms as $perm): ?>
-                                <div style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--text-secondary)">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="#43a047" stroke-width="2.5" width="12"><polyline points="20 6 9 17 4 12"/></svg>
-                                    <?= $perm ?>
+                                <?php foreach ($perms as $perm): 
+                                    $isNeg = strpos($perm, 'No ') === 0;
+                                ?>
+                                <div style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:<?= $isNeg ? 'var(--text-muted)' : 'var(--text-secondary)' ?>">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="<?= $isNeg ? '#ef5350' : '#43a047' ?>" stroke-width="2.5" width="12">
+                                        <?= $isNeg ? '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>' : '<polyline points="20 6 9 17 4 12"/>' ?>
+                                    </svg>
+                                    <?= htmlspecialchars($perm) ?>
                                 </div>
                                 <?php endforeach; ?>
                             </div>
@@ -173,13 +190,14 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
             <div class="form-group">
                 <label class="form-label">Role <span class="required">*</span></label>
                 <select class="form-control" id="newUserRole">
-                    <option value="staff">Staff – Create, View</option>
-                    <option value="manager">Manager – Create, Edit, View</option>
+                    <option value="staff">Sales Executive – Create, Limited Status</option>
+                    <option value="manager">Sales Manager – Create, Edit, Assign, Status</option>
                     <option value="admin">Admin – Full Access</option>
                 </select>
             </div>
-            <div style="background:rgba(251,140,0,0.08);border:1px solid rgba(251,140,0,0.2);border-radius:8px;padding:10px 12px;font-size:0.78rem;color:#e65100;margin-top:8px">
-                <strong>Note:</strong> Default password is <code>password123</code>. Ask users to change it in a production environment.
+            <div class="form-group">
+                <label class="form-label">Initial Password <span class="optional">(Optional – auto-generated if blank)</span></label>
+                <input type="password" class="form-control" id="newUserPassword" placeholder="Minimum 8 characters" minlength="8">
             </div>
         </div>
         <div class="modal-footer">
@@ -196,6 +214,8 @@ $initials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(expl
 <script src="../assets/js/animations.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
+const CURRENT_USER_ID = <?= json_encode($user['id'] ?? '') ?>;
+
 async function loadUsers() {
     const res  = await apiFetch('../api/auth.php?action=users');
     const json = await res.json();
@@ -209,7 +229,10 @@ async function loadUsers() {
         return;
     }
 
-    tbody.innerHTML = users.map(u => `
+    tbody.innerHTML = users.map(u => {
+        const isSelf = u.id === CURRENT_USER_ID;
+        const roleLabel = u.role_label || (u.role === 'admin' ? 'Admin' : (u.role === 'manager' ? 'Sales Manager' : 'Sales Executive'));
+        return `
         <tr>
             <td>
                 <div class="customer-name-cell">
@@ -218,7 +241,7 @@ async function loadUsers() {
                 </div>
             </td>
             <td style="font-size:0.82rem">${escHtml(u.user_email)}</td>
-            <td><span class="role-badge ${u.role}">${u.role}</span></td>
+            <td><span class="role-badge ${u.role}">${escHtml(roleLabel)}</span></td>
             <td>
                 <div style="display:flex;align-items:center;gap:6px;font-size:0.8rem">
                     <span class="status-dot ${u.is_active ? 'active' : 'inactive'}"></span>
@@ -229,12 +252,14 @@ async function loadUsers() {
             <td>
                 <div class="d-flex gap-8">
                     <select class="filter-select" style="font-size:0.75rem;padding:4px 8px;height:30px"
+                            ${isSelf ? 'disabled title="Cannot modify your own role"' : ''}
                             onchange="updateRole('${u.id}', this.value)">
-                        <option value="staff" ${u.role==='staff'?'selected':''}>Staff</option>
-                        <option value="manager" ${u.role==='manager'?'selected':''}>Manager</option>
-                        <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+                        <option value="staff" ${(u.business_role==='sales_executive'||u.role==='staff')?'selected':''}>Sales Executive</option>
+                        <option value="manager" ${(u.business_role==='sales_manager'||u.role==='manager')?'selected':''}>Sales Manager</option>
+                        <option value="admin" ${(u.business_role==='admin'||u.role==='admin')?'selected':''}>Admin</option>
                     </select>
-                    <button class="btn-icon ${u.is_active ? 'danger' : ''}" title="${u.is_active ? 'Deactivate' : 'Activate'}"
+                    <button class="btn-icon ${u.is_active ? 'danger' : ''}" title="${isSelf ? 'Cannot deactivate yourself' : (u.is_active ? 'Deactivate' : 'Activate')}"
+                            ${isSelf ? 'disabled style="opacity:0.4;cursor:not-allowed"' : ''}
                             onclick="toggleUser('${u.id}', ${!u.is_active})">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14">
                             ${u.is_active
@@ -245,7 +270,8 @@ async function loadUsers() {
                 </div>
             </td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 async function updateRole(userId, role) {
@@ -273,18 +299,24 @@ async function createUser() {
     const name  = document.getElementById('newUserName').value.trim();
     const email = document.getElementById('newUserEmail').value.trim();
     const role  = document.getElementById('newUserRole').value;
+    const pwdEl = document.getElementById('newUserPassword');
+    const password = pwdEl ? pwdEl.value : '';
     if (!name || !email) { showToast('Name and email required', 'error'); return; }
 
     const res  = await apiFetch('../api/auth.php', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({action:'create_user', name, email, role})
+        body: JSON.stringify({action:'create_user', name, email, role, password: password || undefined})
     });
     const json = await res.json();
     if (json.success) {
         closeModal('addUserModal');
+        document.getElementById('newUserName').value = '';
+        document.getElementById('newUserEmail').value = '';
+        if (pwdEl) pwdEl.value = '';
         loadUsers();
-        showToast('User created successfully', 'success');
+        const initPwd = json.data && json.data.initial_password ? ` (Initial Password: ${json.data.initial_password})` : '';
+        showToast('User created successfully' + initPwd, 'success');
     } else {
         showToast(json.message || 'Failed to create user', 'error');
     }

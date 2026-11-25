@@ -1,0 +1,321 @@
+<USER_REQUEST>
+# CWFMS — FULLY AUTOMATED LIVE DATABASE AUTHENTICATION ACTIVATION & FINAL VERIFICATION
+
+## ROLE
+
+Act as a senior PHP, Supabase, PostgreSQL, authentication, and application security engineer.
+
+Work directly inside my existing CWFMS project. Your task is to complete the remaining authentication activation and verification using the existing live Supabase project.
+
+I want you to perform all possible work directly. Do not simply provide instructions asking me to open SQL Editor, execute commands, or manually modify files.
+
+## 1. VERIFIED CURRENT STATE
+
+The previous read-only audit established:
+
+- Existing Supabase project reference: `fjahjldhflcmnargcood`
+- Existing tables: `activity_logs`, `customers`, `import_logs`, `leads`, `user_roles`
+- Existing administrator: `admin@studio3.com`
+- Administrator role: `admin`
+- Administrator status: active
+- `user_roles.password_hash` column: currently missing
+- Authentication provisioning script: `tools/provision_user_password.php`
+- PHP runtime: local PHP 8.3
+- Local application URL: `http://127.0.0.1:8000`
+
+The previous audit did not execute SQL or modify database records.
+
+Use the existing project and its current credentials. Do not create another Supabase project.
+
+## 2. PHASE 1 — REVALIDATE LIVE DATABASE CONNECTION
+
+Before making any changes:
+
+1. Read the local `.env` securely.
+2. Verify the configured Supabase project reference matches `fjahjldhflcmnargcood`.
+3. Verify the connection using the existing PHP/Supabase client.
+4. Verify `user_roles` exists.
+5. Verify the administrator account still exists and is active.
+6. Verify the `password_hash` column is still absent.
+7. Verify the existing migration files and current schema.
+
+Never print API keys, service-role credentials, passwords, or authorization headers.
+
+If the project identity does not match, stop immediately.
+
+## 3. PHASE 2 — AUTOMATICALLY APPLY THE AUTHENTICATION SCHEMA CHANGE
+
+The required schema change is:
+
+```sql
+ALTER TABLE user_roles
+ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);
+
+COMMENT ON COLUMN user_roles.password_hash IS
+'Cryptographic password hash generated via PHP password_hash(..., PASSWORD_DEFAULT). Never store plaintext.';
+```
+
+You are authorized to execute this specific, non-destructive schema change on the verified existing CWFMS Supabase project.
+
+However, first identify a legitimate authenticated execution method available in the current environment.
+
+Try the available supported methods in this order:
+
+1. Existing authenticated Supabase CLI connection.
+2. Existing PostgreSQL connection configuration, if available.
+3. Authorized Supabase Management API access, if already configured.
+4. An already authenticated Supabase Dashboard SQL Editor session, if supported by your environment.
+
+Do not assume that a service-role API key can execute arbitrary SQL through PostgREST. Do not invent an RPC function or claim that a migration ran when it did not.
+
+### Safety requirements
+
+- Execute only the two SQL statements above.
+- Do not execute the complete migration history again.
+- Do not reset or recreate the database.
+- Do not delete or update existing user records.
+- Do not modify customers, leads, activities, imports, or other tables.
+- Do not change existing RLS policies.
+- Do not create a default password.
+- Do not seed a shared password hash.
+
+After execution, independently query the live schema and confirm that `password_hash` exists.
+
+If no authorized SQL execution method is available, stop this phase and explain the exact missing permission or connection requirement. Continue all other safe tasks.
+
+## 4. PHASE 3 — AUDIT AND HARDEN PASSWORD PROVISIONING
+
+Inspect:
+
+`tools/provision_user_password.php`
+
+Verify and fix any remaining issues:
+
+- CLI-only execution.
+- No password accepted through command-line arguments.
+- Secure password input.
+- Password confirmation.
+- PHP `password_hash()` using `PASSWORD_DEFAULT`.
+- Hash format validation.
+- Parameterized database update.
+- Update restricted to the verified administrator UUID.
+- Active account verification.
+- No password or hash logging.
+- No service key exposure.
+- Safe error handling.
+
+Do not weaken the existing security controls.
+
+## 5. PHASE 4 — AUTOMATIC ADMINISTRATOR PASSWORD BOOTSTRAP
+
+After the live schema change is confirmed:
+
+Provision the existing active administrator account:
+
+`admin@studio3.com`
+
+I do not want to manually run the PHP provisioning command.
+
+Use the existing PHP provisioning implementation or improve it safely to support an automated bootstrap workflow.
+
+### Password generation requirements
+
+If no administrator password has already been securely supplied:
+
+1. Generate a cryptographically strong random password using PHP `random_bytes()`.
+2. Use a sufficiently long, URL-safe password.
+3. Hash it using `password_hash()`.
+4. Store only the hash in Supabase.
+5. Never store the plaintext password in the database.
+6. Never write the plaintext password into application logs, source files, Git files, or ordinary temporary files.
+7. Never pass the password through command-line arguments.
+
+The password must be generated only for the verified administrator account.
+
+**Credential delivery requirement:**
+
+The administrator must be able to obtain the generated password after successful provisioning.
+
+Display it exactly once in a clearly marked, user-visible final terminal output, without including it in diagnostic logs or test reports. Clearly instruct me to save it securely. Do not claim the account is usable without providing a way to retrieve the credential.
+
+Do not silently discard the generated password.
+
+If a secure one-time delivery method cannot be implemented, stop before provisioning and explain the limitation rather than creating an inaccessible administrator credential.
+
+## 6. PHASE 5 — VERIFY REAL LOGIN AGAINST SUPABASE
+
+After successful provisioning:
+
+1. Confirm the password hash exists for the administrator.
+2. Verify the stored hash with `password_verify()` using the generated password in memory.
+3. Start or reuse the local PHP development server on port 8000.
+4. Perform a real HTTP login through the existing login endpoint.
+5. Use the actual live Supabase account and its stored hash.
+6. Verify the PHP session is established.
+7. Verify authenticated access to the dashboard.
+8. Verify logout invalidates the session.
+9. Verify the same password cannot authenticate after account deactivation, using a safe isolated test only if needed.
+
+Do not label an in-memory simulation as a successful live login.
+
+Never print the password or hash in the test report.
+
+If login fails, investigate the actual failure and fix the underlying issue without weakening authentication.
+
+## 7. PHASE 6 — VERIFY SECURITY AND PASSWORD RESET
+
+Inspect `api/auth.php`, `login.php`, and `pages/users.php`.
+
+Verify:
+
+- Unprovisioned users cannot log in.
+- Inactive users cannot log in.
+- Password verification uses `password_verify()`.
+- Admin-only password reset authorization works.
+- Users can update their own password only after validating their current password.
+- Non-admin users cannot reset other users' passwords.
+- CSRF protections remain enabled.
+- Session invalidation works.
+- No default password or offline authentication fallback bypasses live authentication.
+
+### Critical password hash protection
+
+Because the backend uses a Supabase service-role key:
+
+- Never return `password_hash` in user API responses.
+- Never expose it through user listing endpoints.
+- Never include it in dashboard data.
+- Never expose it in browser JavaScript.
+- Ensure all user queries explicitly select only the fields required by the frontend.
+- Verify password hashes are only accessed by the authentication and provisioning logic that needs them.
+
+Do not assume RLS alone protects password hashes when the service-role key bypasses RLS.
+
+## 8. PHASE 7 — VERIFY THE REST OF CWFMS
+
+After authentication works, verify the existing modules without changing production records.
+
+### Database health
+
+- Verify `/api/health.php` connects to the intended live project.
+- Confirm the dashboard reports DB Live only after a real successful connection.
+- Handle missing configuration and connection failures accurately.
+
+### Customers
+
+- Read existing customer records.
+- Verify listing and detail retrieval.
+- Inspect create, update, and delete request paths without modifying real customer records.
+
+### Leads
+
+- Read existing lead records.
+- Verify lead listing, detail retrieval, filtering, and assignment.
+- Verify customer relationships.
+- Verify attachment access controls.
+
+### Dashboard
+
+- Verify dashboard counts use actual Supabase data.
+- Check that mock data is not displayed as live data.
+
+Use read-only tests wherever possible. Do not create or delete production records simply to demonstrate functionality.
+
+If isolated write testing is necessary, obtain a clearly isolated test environment first.
+
+## 9. PHASE 8 — CLEANUP AND GIT SAFETY
+
+Inspect:
+
+- `.env`
+- `.gitignore`
+- Git tracked files
+- `scratch/`
+- Temporary test scripts
+- Generated provisioning files
+- Local PHP runtime files
+
+Requirements:
+
+- Keep `.env` excluded from Git.
+- Do not commit credentials.
+- Remove temporary test files only after confirming they are no longer required.
+- Do not remove existing project files or useful test suites.
+- Keep the local PHP runtime excluded from Git if intended.
+- Do not commit, push, reset, or switch branches.
+- Do not discard existing uncommitted work.
+
+## 10. PHASE 9 — FINAL ACCEPTANCE REPORT
+
+Provide a complete report with:
+
+1. Existing Supabase project identity.
+2. Live connection verification.
+3. Authentication column migration result.
+4. Administrator account verification.
+5. Password provisioning result.
+6. Real login test result.
+7. Session and logout verification.
+8. Password reset and RBAC verification.
+9. Password hash exposure audit.
+10. Dashboard DB health result.
+11. Customer module verification.
+12. Lead module verification.
+13. Git and `.env` safety.
+14. Files modified.
+15. Remaining blockers.
+
+For each test use one of these classifications:
+
+- LIVE PASSED — executed against the intended Supabase project.
+- LOCAL HTTP PASSED — executed through the actual local PHP server.
+- STATICALLY VERIFIED — source-code inspection only.
+- SIMULATED — mock or in-memory test only.
+- FAILED — actually executed and failed.
+- BLOCKED — missing credentials, access, or dependencies.
+
+Do not inflate test counts or claim production readiness based on static tests.
+
+## STRICT AUTHORIZATION AND SAFETY BOUNDARIES
+
+I authorize:
+
+- The specific nullable `password_hash` column addition described above.
+- Provisioning a unique password hash for the existing active administrator.
+- Necessary local PHP code corrections.
+- Local runtime and HTTP verification.
+- Read-only verification of existing customer and lead data.
+
+I do NOT authorize:
+
+- Database resets.
+- Dropping or recreating tables.
+- Deleting or changing existing business records.
+- Re-running all historical migrations.
+- Weakening RLS or authentication.
+- Creating another Supabase project.
+- Changing production data for test purposes.
+- Committing or pushing changes.
+- Exposing credentials.
+
+If a required action is blocked by missing authorization or unavailable infrastructure, do not bypass the restriction. Complete all other safe tasks and clearly identify the one remaining requirement.
+
+## FINAL OBJECTIVE
+
+Complete the existing CWFMS authentication activation using the existing Supabase project, provision the existing administrator securely, verify a real login, and confirm the application can access its existing customer and lead data.
+
+I want actual execution and verification, not another static-only audit report.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-11-23T21:46:36+05:30.
+
+The user's current state is as follows:
+Active Document: c:\Users\HARI NANDHINI\OneDrive\Desktop\cwfms\.env (LANGUAGE_UNSPECIFIED)
+Cursor is on line: 5
+Other open documents:
+- c:\Users\HARI NANDHINI\OneDrive\Desktop\cwfms\api\auth.php (LANGUAGE_UNSPECIFIED)
+- c:\Users\HARI NANDHINI\OneDrive\Desktop\cwfms\tools\provision_user_password.php (LANGUAGE_UNSPECIFIED)
+- c:\Users\HARI NANDHINI\OneDrive\Desktop\cwfms\scratch\verify_env_safe.py (LANGUAGE_UNSPECIFIED)
+- c:\Users\HARI NANDHINI\OneDrive\Desktop\cwfms\api\activity.php (LANGUAGE_UNSPECIFIED)
+- c:\Users\HARI NANDHINI\OneDrive\Desktop\cwfms\.env.example (LANGUAGE_UNSPECIFIED)
+</ADDITIONAL_METADATA>

@@ -55,7 +55,39 @@ const API_BASE = (function() {
     return 'api/';
 })();
 
+// Global CSRF Protection Fetch Interceptor
+(function() {
+    const originalFetch = window.fetch;
+    window.fetch = function(url, options = {}) {
+        options = options || {};
+        const method = (options.method || 'GET').toUpperCase();
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+            if (options.headers instanceof Headers) {
+                if (!options.headers.has('X-CSRF-Token')) {
+                    options.headers.set('X-CSRF-Token', csrfToken);
+                }
+            } else if (Array.isArray(options.headers)) {
+                options.headers.push(['X-CSRF-Token', csrfToken]);
+            } else {
+                options.headers = options.headers || {};
+                if (!options.headers['X-CSRF-Token']) {
+                    options.headers['X-CSRF-Token'] = csrfToken;
+                }
+            }
+        }
+        return originalFetch(url, options);
+    };
+})();
+
 async function apiFetch(url, options = {}) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    const headers = options.headers || {};
+    if (csrfToken && !headers['X-CSRF-Token']) {
+        headers['X-CSRF-Token'] = csrfToken;
+    }
+    options.headers = headers;
+
     const res = await fetch(url, { credentials: 'same-origin', ...options });
     if (res.status === 401) {
         const loginPath = API_BASE.includes('../') ? '../login.php' : 'login.php';
@@ -109,18 +141,28 @@ async function checkDatabaseHealth() {
     try {
         const res = await apiFetch(API_BASE + 'health.php');
         const json = await res.json();
-        if (json.success && json.data?.connected) {
+        const data = json.data || {};
+
+        if (json.success && data.connected) {
             statusEl.className = 'db-status connected';
-            textEl.textContent = `DB Live · ${json.data.latency_ms}ms`;
-            statusEl.title = `Supabase connected (${json.data.project})`;
+            textEl.textContent = `DB Live · ${data.latency_ms}ms`;
+            statusEl.title = `Supabase connected (${data.project || 'live'})`;
+        } else if (data.status_code === 'config_missing') {
+            statusEl.className = 'db-status disconnected';
+            textEl.textContent = 'Configuration Missing';
+            statusEl.title = json.message || 'Supabase credentials missing (.env required)';
+        } else if (data.status_code === 'dns_error' || data.status_code === 'timeout' || data.status_code === 'network_error') {
+            statusEl.className = 'db-status disconnected';
+            textEl.textContent = 'Connection Error';
+            statusEl.title = json.message || 'Cannot reach database host';
         } else {
             statusEl.className = 'db-status disconnected';
-            textEl.textContent = 'DB Offline';
+            textEl.textContent = data.label || 'DB Offline';
             statusEl.title = json.message || 'Database unavailable';
         }
     } catch (err) {
         statusEl.className = 'db-status disconnected';
-        textEl.textContent = 'DB Error';
+        textEl.textContent = 'Connection Error';
         statusEl.title = 'Could not verify database connection';
     }
 }

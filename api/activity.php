@@ -24,7 +24,10 @@ if ($method === 'GET' && $action === 'list') {
         $params['customer_id'] = 'eq.' . sanitize($customerId);
     }
 
-    $result = $db->select('activity_logs', $params);
+    $result = $db->select('activity_log', $params);
+    if (!$db->isSuccess($result)) {
+        $result = $db->select('activity_logs', $params);
+    }
 
     if ($result['status'] >= 200 && $result['status'] < 300) {
         jsonResponse(true, 'Activity log fetched', $result['data'] ?? []);

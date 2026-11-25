@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 3 Visual Preview - Date Range Filtering & Table Bulk Editing</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        body {
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 24px;
+            margin: 0;
+        }
+        .preview-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 12px;
+        }
+        .preview-header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            color: #fff;
+        }
+        .preview-badge {
+            background: #4f46e5;
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .card {
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .lead-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: stretch;
+            justify-content: space-between;
+        }
+        .lead-filters {
+            display: grid;
+            grid-template-columns: minmax(180px, 1.4fr) repeat(3, minmax(120px, 1fr)) repeat(2, minmax(130px, 1fr)) auto;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+            align-items: end;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+        .filter-group label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94a3b8;
+            font-weight: 700;
+        }
+        .form-control {
+            min-height: 42px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: #0f172a;
+            color: #f8fafc;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .form-control:focus {
+            border-color: #6366f1;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .btn-primary { background: #4f46e5; color: #fff; }
+        .btn-secondary { background: #334155; color: #e2e8f0; border-color: rgba(255,255,255,0.1); }
+        .btn-danger { background: #ef4444; color: #fff; border-color: #dc2626; }
+        .btn-sm { padding: 6px 12px; font-size: 0.78rem; border-radius: 6px; }
+
+        .card-header-simple {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .card-header-simple h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* Bulk Actions Toolbar */
+        .bulk-actions-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: #0f172a;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            padding: 8px 14px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+        }
+        .bulk-toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .bulk-selected-badge {
+            background: #4f46e5;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .bulk-toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .bulk-action-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Table styles */
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            background: #1e293b;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+        .data-table th {
+            background: #0f172a;
+            padding: 12px 14px;
+            font-weight: 700;
+            color: #94a3b8;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.72rem;
+            white-space: nowrap;
+        }
+        .data-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #e2e8f0;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        .data-table tr:hover td {
+            background: rgba(255,255,255,0.02);
+        }
+        .data-table tr.selected td {
+            background: rgba(79, 70, 229, 0.12);
+        }
+        .lead-select-col {
+            width: 40px;
+            text-align: center;
+        }
+        .lead-select-box {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+            accent-color: #6366f1;
+        }
+
+        /* Priority and Status Badges */
+        .priority-badge {
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            padding: 3px 8px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .priority-badge.high { background: rgba(239, 83, 80, 0.2); color: #ef5350; border: 1px solid rgba(239, 83, 80, 0.4); }
+        .priority-badge.medium { background: rgba(251, 140, 0, 0.2); color: #fb8c00; border: 1px solid rgba(251, 140, 0, 0.4); }
+        .priority-badge.low { background: rgba(66, 165, 245, 0.2); color: #42a5f5; border: 1px solid rgba(66, 165, 245, 0.4); }
+
+        .status-badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 4px 9px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .status-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .status-orange { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
+        .status-cyan { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); }
+        .status-green { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .status-darkgreen { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <div class="preview-header">
+            <div>
+                <h1>Ira Sportswear Lead Management</h1>
+                <div style="font-size:0.85rem; color:#94a3b8; margin-top:4px;">Phase 3: Date Range Filtering & Table View Bulk Editing Live Preview</div>
+            </div>
+            <div class="preview-badge">PHASE 3 VERIFIED</div>
+        </div>
+
+        <!-- 1. Top Filters with Date Range -->
+        <div class="card">
+            <div class="lead-toolbar">
+                <div class="lead-filters">
+                    <div class="filter-group">
+                        <label>Search</label>
+                        <input id="leadSearch" type="text" class="form-control" placeholder="Search leads..." value="Cricket">
+                    </div>
+                    <div class="filter-group">
+                        <label>Assigned To</label>
+                        <select id="leadAssignedFilter" class="form-control">
+                            <option value="">All Sales Users</option>
+                            <option selected>John Doe (Admin)</option>
+                            <option>Jane Smith (Manager)</option>
+                            <option>Mike Rep (Staff)</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Sport</label>
+                        <select id="leadSportFilter" class="form-control">
+                            <option value="">All Sports</option>
+                            <option selected>Cricket</option>
+                            <option>Soccer</option>
+                            <option>Pickleball</option>
+                            <option>Tennis</option>
+                            <option>Badminton</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Lead Source</label>
+                        <select id="leadSourceFilter" class="form-control">
+                            <option value="">All Sources</option>
+                            <option>Kit Builder</option>
+                            <option>Website</option>
+                            <option>WhatsApp</option>
+                            <option>Email</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>From Date</label>
+                        <input type="date" id="leadDateFrom" class="form-control" value="2026-06-01">
+                    </div>
+                    <div class="filter-group">
+                        <label>To Date</label>
+                        <input type="date" id="leadDateTo" class="form-control" value="2026-06-30">
+                    </div>
+                    <div class="filter-group" style="justify-content:flex-end;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="clearDateFilterBtn" style="min-height:42px;">Clear Dates</button>
+                    </div>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:flex-end;">
+                    <button class="btn btn-secondary btn-sm">Kanban</button>
+                    <button class="btn btn-primary btn-sm" style="background:#4f46e5;">Table</button>
+                    <button class="btn btn-secondary btn-sm">Calendar</button>
+                    <button class="btn btn-secondary btn-sm">Export CSV</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Table View Card with Active Bulk Actions Toolbar -->
+        <div class="card" id="leadTableCard">
+            <div class="card-header-simple">
+                <h3>Table View</h3>
+
+                <!-- Active Bulk Toolbar -->
+                <div id="bulkActionsToolbar" class="bulk-actions-toolbar">
+                    <div class="bulk-toolbar-left">
+                        <span class="bulk-selected-badge" id="selectedCountBadge">3 selected</span>
+                        <button type="button" class="btn btn-secondary btn-sm" id="clearSelectionBtn" style="padding:4px 10px; font-size:0.75rem;">Clear</button>
+                    </div>
+                    <div class="bulk-toolbar-actions">
+                        <!-- Bulk Status Update -->
+                        <div class="bulk-action-group">
+                            <select id="bulkStatusSelect" class="form-control" style="min-height:34px; padding:4px 10px; font-size:0.8rem; background:#1e293b;">
+                                <option value="">Change Status...</option>
+                                <option>Received</option>
+                                <option>Analysis</option>
+                                <option>Awaiting Clarification</option>
+                                <option>Order Sheet Prepared</option>
+                                <option selected>Verified</option>
+                                <option>Awaiting Approval</option>
+                                <option>Approved</option>
+                                <option>Awaiting Payment</option>
+                                <option>Moved to Production</option>
+                                <option>Lost</option>
+                            </select>
+                            <button type="button" class="btn btn-primary btn-sm" id="applyBulkStatusBtn">Apply</button>
+                        </div>
+
+                        <!-- Bulk Assignment -->
+                        <div class="bulk-action-group">
+                            <select id="bulkAssignSelect" class="form-control" style="min-height:34px; padding:4px 10px; font-size:0.8rem; background:#1e293b;">
+                                <option value="">Assign To...</option>
+                                <option selected>Jane Smith (Manager)</option>
+                                <option>Mike Rep (Staff)</option>
+                                <option>Sarah Rep (Staff)</option>
+                            </select>
+                            <button type="button" class="btn btn-primary btn-sm" id="applyBulkAssignBtn">Assign</button>
+                        </div>
+
+                        <!-- Bulk Delete (Admin Only) -->
+                        <button type="button" class="btn btn-danger btn-sm" id="bulkDeleteBtn">
+                            🗑️ Delete Selected
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table with Row Checkboxes -->
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="lead-select-col"><input type="checkbox" id="selectAllLeads" class="lead-select-box" checked></th>
+                            <th>Lead ID</th>
+                            <th>Customer</th>
+                            <th>Priority</th>
+                            <th>Source</th>
+                            <th>Sport</th>
+                            <th>Assigned To</th>
+                            <th>Status</th>
+                            <th>Enquiry Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leadTableBody">
+                        <tr class="selected">
+                            <td class="lead-select-col"><input type="checkbox" class="lead-select-box" checked></td>
+                            <td><code>b1a2c3d4</code></td>
+                            <td><strong>Royal Challengers Club</strong> (Arun Kumar)</td>
+                            <td><span class="priority-badge high">HIGH</span></td>
+                            <td>Kit Builder</td>
+                            <td>🏏 Cricket</td>
+                            <td>John Doe</td>
+                            <td><span class="status-badge status-blue">Received</span></td>
+                            <td>10-Jun-2026</td>
+                            <td><button class="btn btn-secondary btn-sm">View</button></td>
+                        </tr>
+                        <tr class="selected">
+                            <td class="lead-select-col"><input type="checkbox" class="lead-select-box" checked></td>
+                            <td><code>f5e6d7c8</code></td>
+                            <td><strong>Titan Cricket Academy</strong> (Praveen Raj)</td>
+                            <td><span class="priority-badge medium">MEDIUM</span></td>
+                            <td>WhatsApp</td>
+                            <td>🏏 Cricket</td>
+                            <td>Jane Smith</td>
+                            <td><span class="status-badge status-orange">Analysis</span></td>
+                            <td>12-Jun-2026</td>
+                            <td><button class="btn btn-secondary btn-sm">View</button></td>
+                        </tr>
+                        <tr class="selected">
+                            <td class="lead-select-col"><input type="checkbox" class="lead-select-box" checked></td>
+                            <td><code>9a8b7c6d</code></td>
+                            <td><strong>Apex Super Kings</strong> (Karthik S)</td>
+                            <td><span class="priority-badge high">HIGH</span></td>
+                            <td>Custom Design</td>
+                            <td>🏏 Cricket</td>
+                            <td>Mike Rep</td>
+                            <td><span class="status-badge status-cyan">Verified</span></td>
+                            <td>15-Jun-2026</td>
+                            <td><button class="btn btn-secondary btn-sm">View</button></td>
+                        </tr>
+                        <tr>
+                            <td class="lead-select-col"><input type="checkbox" class="lead-select-box"></td>
+                            <td><code>e1f2a3b4</code></td>
+                            <td><strong>Chennai Smashers</strong> (Deepak Nathan)</td>
+                            <td><span class="priority-badge low">LOW</span></td>
+                            <td>Website</td>
+                            <td>🏸 Badminton</td>
+                            <td>Sarah Rep</td>
+                            <td><span class="status-badge status-green">Approved</span></td>
+                            <td>18-Jun-2026</td>
+                            <td><button class="btn btn-secondary btn-sm">View</button></td>
+                        </tr>
+                        <tr>
+                            <td class="lead-select-col"><input type="checkbox" class="lead-select-box"></td>
+                            <td><code>4c5d6e7f</code></td>
+                            <td><strong>FC United Academy</strong> (David Miller)</td>
+                            <td><span class="priority-badge medium">MEDIUM</span></td>
+                            <td>Kit Builder</td>
+                            <td>⚽ Soccer</td>
+                            <td>John Doe</td>
+                            <td><span class="status-badge status-darkgreen">Moved to Production</span></td>
+                            <td>22-Jun-2026</td>
+                            <td><button class="btn btn-secondary btn-sm">View</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

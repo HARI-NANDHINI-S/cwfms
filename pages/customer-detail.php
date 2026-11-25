@@ -24,13 +24,46 @@ if ($result['status'] !== 200 || empty($result['data'])) {
 }
 $c = enrichCustomers($db, [$result['data'][0]])[0];
 
-// Fetch activity log
-$logResult = $db->select('activity_logs', [
+// Fetch activity log (supports both activity_log and activity_logs tables)
+$logResult = $db->select('activity_log', [
     'customer_id' => 'eq.' . $id,
     'order'       => 'created_at.desc',
     'limit'       => '20',
 ]);
+if (!$db->isSuccess($logResult)) {
+    $logResult = $db->select('activity_logs', [
+        'customer_id' => 'eq.' . $id,
+        'order'       => 'created_at.desc',
+        'limit'       => '20',
+    ]);
+}
 $activityLog = $logResult['data'] ?? [];
+
+// Fetch customer leads
+$leadsQuery = [
+    'customer_id' => 'eq.' . $id,
+    'is_deleted'  => 'eq.false',
+    'order'       => 'enquiry_date.desc',
+];
+if (($user['business_role'] ?? '') === 'sales_executive') {
+    $leadsQuery['assigned_to'] = 'eq.' . ($user['id'] ?? '');
+}
+$leadsResult = $db->select('leads', $leadsQuery);
+$customerLeads = $leadsResult['data'] ?? [];
+$leadsCount = count($customerLeads);
+
+$userMap = [];
+if (!empty($customerLeads)) {
+    $assignedUserIds = array_filter(array_unique(array_column($customerLeads, 'assigned_to')));
+    if (!empty($assignedUserIds)) {
+        $uRes = $db->select('user_roles', ['id' => 'in.(' . implode(',', $assignedUserIds) . ')']);
+        if (!empty($uRes['data'])) {
+            foreach ($uRes['data'] as $u) {
+                $userMap[$u['id']] = $u['user_name'];
+            }
+        }
+    }
+}
 
 // Avatar
 $nameInitials = implode('', array_map(fn($p) => strtoupper($p[0]), array_filter(explode(' ', $c['name']))));
@@ -44,10 +77,12 @@ $db->logActivity($id, 'viewed', null, $user['name'], 'Profile viewed');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($c['name']) ?> | Customer Management</title>
+    <title><?= htmlspecialchars($c['name']) ?> | Ira Sportswear</title>
+    <link rel="icon" type="image/png" href="../assets/favicon.png">
+    <link rel="shortcut icon" href="../assets/favicon.ico">
+    <meta name="csrf-token" content="<?= getCsrfToken() ?>">
     <script>(function(){var t=localStorage.getItem('cm-theme');if(t){document.documentElement.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){document.documentElement.setAttribute('data-theme','dark')}else{document.documentElement.setAttribute('data-theme','light')}})();</script>
     <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e53935'/><text y='.9em' font-size='80' x='10'>S3</text></svg>">
 </head>
 <body>
 
@@ -56,10 +91,10 @@ $db->logActivity($id, 'viewed', null, $user['name'], 'Profile viewed');
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-logo">S3</div>
+            <img src="../assets/ira_logo_web.png" alt="Ira Sportswear Logo" class="brand-logo-img">
             <div class="brand-text">
-                <h2>Studio 3</h2>
-                <span>Order Management</span>
+                <h2>Ira Sportswear</h2>
+                <span>Lead Management</span>
             </div>
         </div>
         <nav class="sidebar-nav">
@@ -78,14 +113,14 @@ $db->logActivity($id, 'viewed', null, $user['name'], 'Profile viewed');
                 Import CSV
             </a>
             <?php endif; ?>
-            <div class="nav-section-label" style="margin-top:8px">Coming Soon</div>
-            <span class="nav-item" style="opacity:0.4;cursor:not-allowed">
+            <a href="leads.php" class="nav-item">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                Leads
-            </span>
-            <span class="nav-item" style="opacity:0.4;cursor:not-allowed">
+                Leads Pipeline
+            </a>
+            <div class="nav-section-label" style="margin-top:8px">Coming Soon</div>
+            <span class="nav-item" style="opacity:0.4;cursor:not-allowed" title="Phase 3: Order Manufacturing & Tracking">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                Orders
+                Orders (Phase 3)
             </span>
         </nav>
         <div class="theme-toggle-wrap">
@@ -321,25 +356,29 @@ $db->logActivity($id, 'viewed', null, $user['name'], 'Profile viewed');
                         </div>
                     </div>
 
-                    <!-- Linked Records Placeholder -->
+                    <!-- Linked Records Summary -->
                     <div class="card" style="margin-top:16px">
-                        <div class="card-header-simple">
-                            <h3>
+                        <div class="card-header-simple" style="display:flex;justify-content:space-between;align-items:center;">
+                            <h3 style="margin:0;">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                                 Linked Records
                             </h3>
+                            <a href="leads.php?customer_id=<?= urlencode($c['id']) ?>&action=new" class="btn btn-sm btn-primary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                + New Enquiry
+                            </a>
                         </div>
                         <div style="padding:20px">
                             <div class="linked-records-grid">
+                                <a href="leads.php?customer_id=<?= urlencode($c['id']) ?>" class="linked-record-item" style="text-decoration:none;cursor:pointer;" title="View Leads in Pipeline">
+                                    <div class="linked-count" style="color:var(--accent);"><?= $leadsCount ?></div>
+                                    <div class="linked-label">Active Leads</div>
+                                    <div class="linked-sub" style="color:var(--accent);font-weight:600;">View in Pipeline →</div>
+                                </a>
                                 <div class="linked-record-item">
                                     <div class="linked-count">—</div>
                                     <div class="linked-label">Orders</div>
-                                    <div class="linked-sub">Phase 2</div>
-                                </div>
-                                <div class="linked-record-item">
-                                    <div class="linked-count">—</div>
-                                    <div class="linked-label">Leads</div>
-                                    <div class="linked-sub">Phase 2</div>
+                                    <div class="linked-sub">Phase 3</div>
                                 </div>
                                 <div class="linked-record-item">
                                     <div class="linked-count">—</div>
@@ -347,6 +386,111 @@ $db->logActivity($id, 'viewed', null, $user['name'], 'Profile viewed');
                                     <div class="linked-sub">Phase 3</div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Dedicated Active Leads Pipeline Table Card -->
+                    <div class="card" style="margin-top:16px">
+                        <div class="card-header-simple" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                            <h3 style="margin:0;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                                Active Enquiries &amp; Athletic Team Orders (<?= $leadsCount ?>)
+                            </h3>
+                            <?php if ($leadsCount > 0): ?>
+                            <a href="leads.php?customer_id=<?= urlencode($c['id']) ?>" class="btn btn-sm btn-secondary">
+                                Open in Kanban Pipeline &rarr;
+                            </a>
+                            <?php endif; ?>
+                        </div>
+                        <div style="padding:0;">
+                            <?php if (empty($customerLeads)): ?>
+                            <div style="padding:32px 20px;text-align:center;">
+                                <div style="font-size:2rem;margin-bottom:8px;">📋</div>
+                                <h4 style="margin:0 0 6px;color:var(--text-primary);font-size:0.95rem;">No Leads or Enquiries Recorded</h4>
+                                <p style="margin:0 0 16px;color:var(--text-muted);font-size:0.83rem;">No sportswear design, quotation, or team kit orders have been created for this customer yet.</p>
+                                <a href="leads.php?customer_id=<?= urlencode($c['id']) ?>&action=new" class="btn btn-sm btn-primary">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                    Create First Enquiry
+                                </a>
+                            </div>
+                            <?php else: ?>
+                            <div class="table-responsive" style="overflow-x:auto;">
+                                <table class="table" style="width:100%;margin:0;font-size:0.82rem;border-collapse:collapse;">
+                                    <thead>
+                                        <tr style="border-bottom:1px solid var(--border);background:var(--surface-2);text-align:left;">
+                                            <th style="padding:10px 14px;">Lead Ref</th>
+                                            <th style="padding:10px 14px;">Sport</th>
+                                            <th style="padding:10px 14px;">Products</th>
+                                            <th style="padding:10px 14px;">Priority</th>
+                                            <th style="padding:10px 14px;">Status</th>
+                                            <th style="padding:10px 14px;">Assigned Rep</th>
+                                            <th style="padding:10px 14px;">Date</th>
+                                            <th style="padding:10px 14px;text-align:right;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $sportIcons = [
+                                            'cricket'=>'🏏', 'football'=>'⚽', 'volleyball'=>'🏐',
+                                            'badminton'=>'🏸', 'basketball'=>'🏀', 'running'=>'🏃',
+                                            'cycling'=>'🚴', 'other'=>'🏆'
+                                        ];
+                                        $statusClass = [
+                                            'Received'               => 'status-received',
+                                            'Analysis'               => 'status-analysis',
+                                            'Awaiting Clarification' => 'status-clarification',
+                                            'Order Sheet Prepared'   => 'status-sheet',
+                                            'Verified'               => 'status-verified',
+                                            'Awaiting Approval'      => 'status-approval',
+                                            'Approved'               => 'status-approved',
+                                            'Awaiting Payment'       => 'status-payment',
+                                            'Moved to Production'    => 'status-production',
+                                            'Lost'                   => 'status-lost',
+                                        ];
+                                        foreach ($customerLeads as $lead):
+                                            $sKey = strtolower($lead['sport'] ?? 'other');
+                                            $icon = $sportIcons[$sKey] ?? '🏆';
+                                            $prio = strtolower($lead['priority'] ?? 'medium');
+                                            $prioClass = in_array($prio, ['high','urgent']) ? 'priority-high' : ($prio === 'low' ? 'priority-low' : 'priority-medium');
+                                            $stName = $lead['lead_status'] ?? 'Received';
+                                            $stClass = $statusClass[$stName] ?? 'status-received';
+                                            $prods = !empty($lead['products_interested']) ? (is_array($lead['products_interested']) ? implode(', ', $lead['products_interested']) : $lead['products_interested']) : '—';
+                                            $repName = $userMap[$lead['assigned_to'] ?? ''] ?? 'Unassigned';
+                                            $shortRef = substr($lead['id'], 0, 8);
+                                        ?>
+                                        <tr style="border-bottom:1px solid var(--border);">
+                                            <td style="padding:10px 14px;font-family:monospace;font-weight:600;color:var(--text-primary);">
+                                                #<?= htmlspecialchars($shortRef) ?>
+                                            </td>
+                                            <td style="padding:10px 14px;">
+                                                <span style="margin-right:4px;"><?= $icon ?></span><?= htmlspecialchars(ucfirst($lead['sport'] ?? 'General')) ?>
+                                            </td>
+                                            <td style="padding:10px 14px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="<?= htmlspecialchars($prods) ?>">
+                                                <?= htmlspecialchars($prods) ?>
+                                            </td>
+                                            <td style="padding:10px 14px;">
+                                                <span class="priority-badge <?= $prioClass ?>" style="padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:600;"><?= strtoupper(htmlspecialchars($prio)) ?></span>
+                                            </td>
+                                            <td style="padding:10px 14px;">
+                                                <span class="status-badge <?= $stClass ?>" style="padding:3px 8px;border-radius:12px;font-size:0.74rem;"><?= htmlspecialchars($stName) ?></span>
+                                            </td>
+                                            <td style="padding:10px 14px;color:var(--text-secondary);">
+                                                <?= htmlspecialchars($repName) ?>
+                                            </td>
+                                            <td style="padding:10px 14px;color:var(--text-muted);font-size:0.78rem;">
+                                                <?= !empty($lead['enquiry_date']) ? date('d M Y', strtotime($lead['enquiry_date'])) : '—' ?>
+                                            </td>
+                                            <td style="padding:10px 14px;text-align:right;">
+                                                <a href="leads.php?id=<?= urlencode($lead['id']) ?>" class="btn btn-xs btn-secondary" style="padding:3px 10px;font-size:0.75rem;">
+                                                    View Lead &rarr;
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -370,6 +514,7 @@ $db->logActivity($id, 'viewed', null, $user['name'], 'Profile viewed');
                                     'deactivated' => 'orange',
                                     'deleted'     => 'red',
                                     'viewed'      => 'gray',
+                                    'lead_event'  => 'blue',
                                 ];
                                 $color = $actionIcons[$log['action']] ?? 'gray';
                             ?>
@@ -560,46 +705,6 @@ function confirmToggleStatus(id, name, currentStatus) {
     if (nameEl) nameEl.textContent = name;
     msgEl.innerHTML = `Are you sure you want to <strong>${statusWord.toLowerCase()}</strong> the customer profile for <strong>${escHtml(name)}</strong>?`;
 
-    confirmBtn.className = newStatus ? 'btn btn-primary' : 'btn btn-warning';
-    confirmBtn.onclick = async () => {
-        confirmBtn.disabled = true;
-        confirmBtn.textContent = 'Updating…';
-        try {
-            const res = await apiFetch('../api/customers.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action: 'toggle_status', id, is_active: newStatus})
-            });
-            const json = await res.json();
-            if (json.success) {
-                showToast(`Customer status updated successfully`, 'success');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                showToast(json.message || 'Status update failed', 'error');
-                confirmBtn.disabled = false;
-                confirmBtn.textContent = 'Confirm';
-            }
-        } catch (e) {
-            showToast('Network error', 'error');
-            confirmBtn.disabled = false;
-            confirmBtn.textContent = 'Confirm';
-        }
-    };
-    statusModal.classList.add('active');
-}
-    const statusModal = document.getElementById('statusModal');
-    const confirmBtn = document.getElementById('confirmStatusBtn');
-    const nameEl = document.getElementById('statusCustomerName');
-    
-    if (!statusModal || !confirmBtn) return;
-    
-    const newStatus = !currentStatus;
-    const statusWord = newStatus ? 'Activate' : 'Deactivate';
-    
-    titleEl.textContent = `${statusWord} Customer?`;
-    if (nameEl) nameEl.textContent = name;
-    msgEl.innerHTML = `Are you sure you want to <strong>${statusWord.toLowerCase()}</strong> the customer profile for <strong>${escHtml(name)}</strong>?`;
-    
     confirmBtn.className = newStatus ? 'btn btn-primary' : 'btn btn-warning';
     confirmBtn.onclick = async () => {
         confirmBtn.disabled = true;

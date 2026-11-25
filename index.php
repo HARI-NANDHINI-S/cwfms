@@ -7,7 +7,7 @@
         <h1>Elevate Your <span style="color:var(--primary)">Customer Relations</span></h1>
         <p>Advanced customer management solutions for modern enterprises. Track, analyze, and grow your client base with professional precision.</p>
         <div style="display:flex;gap:20px;justify-content:center">
-            <a href="login.php" class="btn-login-nav" style="padding:16px 36px;font-size:1.1rem">Get Started</a>
+            <a href="<?= isset($_SESSION['user']) ? 'dashboard.php' : 'login.php' ?>" class="btn-login-nav" style="padding:16px 36px;font-size:1.1rem">Get Started</a>
             <a href="about.php" style="padding:16px 36px;font-size:1.1rem;color:#fff;text-decoration:none;font-weight:700;border:1px solid rgba(255,255,255,0.3);border-radius:50px;transition:all 0.3s">Learn More</a>
         </div>
     </div>
@@ -17,8 +17,8 @@
 <section class="section">
     <div class="container">
         <div class="section-title reveal">
-            <h2>Why Choose <span style="color:var(--primary)">Studio 3</span></h2>
-            <p>We provide the ultimate management platform for high-performance business environments.</p>
+            <h2>Why Choose <span style="color:var(--primary)">Ira Sportswear</span></h2>
+            <p>We provide the ultimate management platform for athletic apparel and custom team sportswear.</p>
         </div>
         
         <div class="features-grid">

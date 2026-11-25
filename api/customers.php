@@ -1,6 +1,7 @@
 <?php
 // ============================================================
-// api/customers.php - Customer CRUD API
+// api/customers.php - Customer CRUD & Relational Leads API
+// Ira Sportswear / Studio 3 Interactive - CWFMS
 // ============================================================
 require_once '../includes/config.php';
 
@@ -54,7 +55,69 @@ if ($method === 'GET' && $action === 'list') {
 }
 
 // ============================================================
-// POST: Create / Update / Toggle Status
+// GET: Single customer detail
+// ============================================================
+if ($method === 'GET' && $action === 'get') {
+    $id = sanitize($_GET['id'] ?? '');
+    if (!$id) {
+        jsonResponse(false, 'Customer ID required', null, 400);
+    }
+    $result = $db->select('customers', ['id' => 'eq.' . $id, 'is_deleted' => 'eq.false']);
+    if ($result['status'] !== 200 || empty($result['data'])) {
+        jsonResponse(false, 'Customer not found', null, 404);
+    }
+    $enriched = enrichCustomers($db, $result['data']);
+    jsonResponse(true, 'Customer fetched', $enriched[0]);
+}
+
+// ============================================================
+// GET: Customer-linked leads
+// ============================================================
+if ($method === 'GET' && $action === 'leads') {
+    $customerId = sanitize($_GET['customer_id'] ?? '');
+    if (!$customerId) {
+        jsonResponse(false, 'Customer ID required', null, 400);
+    }
+
+    $currentUser = getCurrentUser();
+    $userRole = normalizeRole($currentUser['role'] ?? 'staff');
+    $leadParams = [
+        'customer_id' => 'eq.' . $customerId,
+        'is_deleted'  => 'eq.false',
+        'order'       => 'enquiry_date.desc',
+        'select'      => '*',
+    ];
+    if ($userRole === 'sales_executive') {
+        $leadParams['assigned_to'] = 'eq.' . ($currentUser['id'] ?? '');
+    }
+
+    $result = $db->select('leads', $leadParams);
+
+    if ($db->isSuccess($result)) {
+        $leads = $result['data'] ?? [];
+        // Resolve assigned sales rep names
+        $usersRes = $db->select('user_roles', ['select' => 'id,user_name']);
+        $usersMap = [];
+        if ($db->isSuccess($usersRes)) {
+            foreach ($usersRes['data'] ?? [] as $u) {
+                $usersMap[$u['id']] = $u['user_name'];
+            }
+        }
+        foreach ($leads as &$l) {
+            $l['assigned_user_name'] = $usersMap[$l['assigned_to'] ?? ''] ?? 'Unassigned';
+            $l['products_interested'] = is_string($l['products_interested'] ?? null)
+                ? (json_decode($l['products_interested'], true) ?: [])
+                : ($l['products_interested'] ?? []);
+        }
+        unset($l);
+        jsonResponse(true, 'Customer leads fetched', $leads);
+    } else {
+        jsonResponse(false, 'Failed to fetch customer leads', null, 500);
+    }
+}
+
+// ============================================================
+// POST: Create / Update / Toggle Status / Delete
 // ============================================================
 if ($method === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
@@ -117,7 +180,7 @@ if ($method === 'POST') {
     // --------------------------------
     if ($postAction === 'update') {
         if (!hasPermission('edit')) {
-            jsonResponse(false, 'Permission denied', null, 403);
+            jsonResponse(false, 'Permission denied. Sales Executives cannot edit customer profiles.', null, 403);
         }
 
         $id = sanitize($input['id'] ?? '');
@@ -142,33 +205,25 @@ if ($method === 'POST') {
         $data = buildCustomerData($input);
         $data['updated_at'] = date('Y-m-d H:i:s');
 
+        $activeStatus = getCustomerActiveStatus($db, $id);
         if ($hasScoreColumn) {
-            $isActive = getCustomerActiveStatus($db, $id);
-            if ($hasActiveColumn) {
-                $currentCustomer = $db->select('customers', ['id' => 'eq.' . $id, 'select' => 'is_active']);
-                if ($currentCustomer['status'] === 200 && !empty($currentCustomer['data'])) {
-                    $isActive = (bool)($currentCustomer['data'][0]['is_active'] ?? true);
-                }
-            }
-            $data['profile_score'] = calculateProfileScore($data, $isActive);
+            $data['profile_score'] = calculateProfileScore($data, $activeStatus);
         }
 
         $result = $db->update('customers', $data, ['id' => 'eq.' . $id]);
 
         if ($db->isSuccess($result)) {
-            $db->logActivity($id, 'updated', $data, $user['name'], 'Customer updated');
-            $updated = $result['data'][0] ?? null;
-            if ($updated) {
-                $updated = enrichCustomers($db, [$updated])[0];
-            }
-            jsonResponse(true, 'Customer updated successfully', $updated);
+            $updatedCustomer = is_array($result['data']) ? ($result['data'][0] ?? $result['data']) : $result['data'];
+            $db->logActivity($id, 'updated', null, $user['name'], 'Customer updated');
+            $updatedCustomer = enrichCustomers($db, [$updatedCustomer])[0];
+            jsonResponse(true, 'Customer updated successfully', $updatedCustomer);
         } else {
             jsonResponse(false, $result['message'] ?? 'Failed to update customer', null, $result['status'] ?: 500);
         }
     }
 
     // --------------------------------
-    // TOGGLE STATUS (Activate / Deactivate)
+    // TOGGLE STATUS
     // --------------------------------
     if ($postAction === 'toggle_status') {
         if (!hasPermission('toggle_status')) {
@@ -233,6 +288,64 @@ if ($method === 'POST') {
 
         jsonResponse(true, 'Customer ' . $statusText . ' successfully', $custData);
     }
+
+    // --------------------------------
+    // DELETE (Soft delete)
+    // --------------------------------
+    if ($postAction === 'delete') {
+        if (!hasPermission('delete')) {
+            jsonResponse(false, 'Permission denied. Only administrators can delete customers.', null, 403);
+        }
+
+        $id = sanitize($input['id'] ?? '');
+        if (!$id) jsonResponse(false, 'Customer ID required', null, 400);
+
+        $currentCustomer = $db->select('customers', ['id' => 'eq.' . $id, 'is_deleted' => 'eq.false']);
+        if (!$db->isSuccess($currentCustomer) || empty($currentCustomer['data'])) {
+            jsonResponse(false, 'Customer not found or already deleted', null, 404);
+        }
+
+        $result = $db->update('customers', [
+            'is_deleted' => true,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ], ['id' => 'eq.' . $id]);
+
+        if ($db->isSuccess($result)) {
+            $db->logActivity($id, 'deleted', null, $user['name'] ?? 'Admin', 'Customer soft deleted');
+            jsonResponse(true, 'Customer deleted successfully');
+        } else {
+            jsonResponse(false, $result['message'] ?? 'Failed to delete customer', null, 500);
+        }
+    }
+}
+
+// ============================================================
+// DELETE: Direct HTTP DELETE support
+// ============================================================
+if ($method === 'DELETE') {
+    if (!hasPermission('delete')) {
+        jsonResponse(false, 'Permission denied. Only administrators can delete customers.', null, 403);
+    }
+
+    $id = sanitize($_GET['id'] ?? '');
+    if (!$id) jsonResponse(false, 'Customer ID required', null, 400);
+
+    $currentCustomer = $db->select('customers', ['id' => 'eq.' . $id, 'is_deleted' => 'eq.false']);
+    if (!$db->isSuccess($currentCustomer) || empty($currentCustomer['data'])) {
+        jsonResponse(false, 'Customer not found or already deleted', null, 404);
+    }
+
+    $result = $db->update('customers', [
+        'is_deleted' => true,
+        'updated_at' => date('Y-m-d H:i:s'),
+    ], ['id' => 'eq.' . $id]);
+
+    if ($db->isSuccess($result)) {
+        $db->logActivity($id, 'deleted', null, $currentUser['name'] ?? 'Admin', 'Customer soft deleted');
+        jsonResponse(true, 'Customer deleted successfully');
+    } else {
+        jsonResponse(false, $result['message'] ?? 'Failed to delete customer', null, 500);
+    }
 }
 
 function buildCustomerData($input) {
@@ -266,7 +379,7 @@ function validateCustomerInput($input, $id = null) {
     if (empty($input['country_code'])) {
         $errors[] = 'Country code is required';
     }
-    if (empty($input['mobile_number']) || !preg_match('/^[0-9]{7,15}$/', $input['mobile_number'])) {
+    if (empty($input['mobile_number']) || !preg_match('/^[0-9]{7,15}$/', (string)$input['mobile_number'])) {
         $errors[] = 'Valid mobile number is required (7-15 digits)';
     }
     if (empty($input['address_line_1'])) {
@@ -278,7 +391,7 @@ function validateCustomerInput($input, $id = null) {
     if (empty($input['state'])) {
         $errors[] = 'State is required';
     }
-    if (empty($input['pincode']) || !preg_match('/^[0-9]+$/', $input['pincode'])) {
+    if (empty($input['pincode']) || !preg_match('/^[0-9]+$/', (string)$input['pincode'])) {
         $errors[] = 'Valid pincode is required (numeric only)';
     }
     if (empty($input['country'])) {

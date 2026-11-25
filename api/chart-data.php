@@ -5,14 +5,10 @@
 require_once '../includes/config.php';
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-cache, no-store, must-revalidate');
 
-// Require session
-if (!isset($_SESSION['user'])) {
-    jsonResponse(false, 'Not authenticated', null, 401);
-    exit;
-}
+requireApiAuth();
 
 $db = new Supabase(true);
 

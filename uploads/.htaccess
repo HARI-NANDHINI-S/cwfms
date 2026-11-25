@@ -1,0 +1,36 @@
+# CWFMS Hardened Uploads Directory Configuration
+# Protects against direct script execution, FastCGI handler hijacking, and unauthorized file access
+# Direct HTTP access to all files is blocked. Files must be accessed via authenticated API endpoints.
+
+# 1. Deny all direct web access (Apache 2.4 mod_authz_core & Apache 2.2 fallback)
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
+
+# 2. Disable PHP execution across mod_php (Apache 2.2 / 2.4 mod_php)
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+# 3. Neutralize PHP-FPM / FastCGI / CGI handlers in modern Apache environments
+<IfModule mod_mime.c>
+    RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .phar .inc .cgi .pl .py .sh .bash
+    RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .phar .inc .cgi .pl .py .sh .bash
+</IfModule>
+
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|php8|phps|phar|inc|cgi|pl|py|sh|bash|exe|svg|html|htm|js)$">
+    SetHandler None
+</FilesMatch>
+
+# 4. Disable directory index browsing and CGI execution
+Options -Indexes -ExecCGI
